@@ -25,7 +25,11 @@ struct Detection {
 
 class Inference {
  public:
+ double huamianshu=0;
 	int flage=1;
+	int flage_=1;
+	int flage__=1;
+	int flage___=1;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
@@ -37,9 +41,9 @@ class Inference {
 	void Pose_Run_async_Inference(cv::Mat &frame);
  private:
 	void InitializeModel(const std::string &model_path);
-	void Preprocessing(const cv::Mat &frame);
-	void PostProcessing(cv::Mat &frame);
-	void Pose_PostProcessing(cv::Mat &frame);
+	void Preprocessing(const cv::Mat &frame,ov::InferRequest &inference_request);
+	//void Pose_PostProcessing(cv::Mat &frame);
+	void Pose_PostProcessing(cv::Mat &frame,ov::InferRequest &inference_request);
 	
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);
@@ -50,6 +54,11 @@ class Inference {
 	cv::Size model_output_shape_;		// Output shape of the model
 
 	ov::InferRequest inference_request_;  // OpenVINO inference request
+	ov::InferRequest infer_request;  // OpenVINO inference request
+		ov::InferRequest Binfer_request;  // OpenVINO inference request
+			ov::InferRequest Cinfer_request;  // OpenVINO inference request
+				ov::InferRequest Dinfer_request;  // OpenVINO inference request
+
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 
 	//ov::InferRequest infer_request;
