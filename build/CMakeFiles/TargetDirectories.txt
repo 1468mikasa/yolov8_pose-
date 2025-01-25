@@ -1,0 +1,3 @@
+/home/auto/cpp_OpenVINO_yolov8/build/CMakeFiles/detect.dir
+/home/auto/cpp_OpenVINO_yolov8/build/CMakeFiles/edit_cache.dir
+/home/auto/cpp_OpenVINO_yolov8/build/CMakeFiles/rebuild_cache.dir

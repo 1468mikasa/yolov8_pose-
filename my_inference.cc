@@ -1,0 +1,351 @@
+#include "inference.h"
+#include <opencv2/highgui.hpp>
+#include <memory>
+#include <opencv2/dnn.hpp>
+#include <random>
+#include <openvino/openvino.hpp>
+
+namespace yolo
+{
+
+	// Constructor to initialize the model with default input shape
+	Inference::Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold)
+	{
+		model_input_shape_ = cv::Size(640, 640); // Set the default size for models with dynamic shapes to prevent errors.
+		model_confidence_threshold_ = model_confidence_threshold;
+		model_NMS_threshold_ = model_NMS_threshold;
+		InitializeModel(model_path);
+	}
+
+	// Constructor to initialize the model with specified input shape
+	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold)
+	{
+		model_input_shape_ = model_input_shape;
+		model_confidence_threshold_ = model_confidence_threshold;
+		model_NMS_threshold_ = model_NMS_threshold;
+		InitializeModel(model_path);
+	}
+
+	void Inference::InitializeModel(const std::string &model_path)
+	{
+		ov::Core core;													// OpenVINO core object
+		std::shared_ptr<ov::Model> model = core.read_model(model_path); // Read the model from file
+
+		// If the model has dynamic shapes, reshape it to the specified input shape
+		if (model->is_dynamic())
+		{
+			model->reshape({1, 3, static_cast<long int>(model_input_shape_.height), static_cast<long int>(model_input_shape_.width)});
+		}
+
+		// Preprocessing setup for the model
+		ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
+		ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::BGR);
+		ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({255, 255, 255});
+		ppp.input().model().set_layout("NCHW");
+		ppp.output().tensor().set_element_type(ov::element::f32);
+		model = ppp.build(); // Build the preprocessed model
+
+		// Compile the model for inference
+		//compiled_model_ = core.compile_model(model, "AUTO");
+		//ov::set_property("CPU", ov::hint::num_threads(4));
+		compiled_model_ = core.compile_model(model, "CPU");
+		inference_request_ = compiled_model_.create_infer_request(); // Create inference request
+
+		short width, height;
+
+		// Get input shape from the model
+		const std::vector<ov::Output<ov::Node>> inputs = model->inputs();
+		const ov::Shape input_shape = inputs[0].get_shape();
+		height = input_shape[1];
+		width = input_shape[2];
+		model_input_shape_ = cv::Size2f(width, height);
+
+		// Get output shape from the model
+		const std::vector<ov::Output<ov::Node>> outputs = model->outputs();
+		const ov::Shape output_shape = outputs[0].get_shape();
+		height = output_shape[1];
+		width = output_shape[2];
+		model_output_shape_ = cv::Size(width, height);
+	}
+
+	// Method to run inference on an input frame
+	void Inference::RunInference(cv::Mat &frame)
+	{
+		Preprocessing(frame);		// Preprocess the input frame
+		inference_request_.infer(); // Run inference
+		PostProcessing(frame);		// Postprocess the inference results
+	}
+
+	void Inference::Pose_RunInference(cv::Mat &frame)
+	{
+		Preprocessing(frame);		// Preprocess the input frame
+		inference_request_.infer(); // Run inference
+		Pose_PostProcessing(frame); // Postprocess the inference results
+	}
+
+	// Method to preprocess the input frame
+	void Inference::Preprocessing(const cv::Mat &frame)
+	{
+		cv::Mat resized_frame;
+		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+
+		// Calculate scaling factor
+		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
+		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+
+		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
+		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+		inference_request_.set_input_tensor(input_tensor);																						 // Set input tensor for inference
+	}
+
+	// Method to postprocess the inference results
+	void Inference::PostProcessing(cv::Mat &frame)
+	{
+		std::vector<int> class_list;
+		std::vector<float> confidence_list;
+		std::vector<cv::Rect> box_list;
+		std::vector<Key_PointAndFloat> key_list;
+		// Get the output tensor from the inference request
+		const float *detections = inference_request_.get_output_tensor().data<const float>();
+		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
+
+		/*if (detection_outputs.channels() == 1) {
+			// 如果是单通道矩阵，将其归一化到 0-255 的范围，以便显示
+			cv::Mat normalized_output;
+			cv::normalize(detection_outputs, normalized_output, 0, 255, cv::NORM_MINMAX, CV_8U);
+			cv::imshow("Detection Outputs", normalized_output);
+		} else if (detection_outputs.channels() == 3) {
+			// 如果是三通道矩阵，假设数据范围已经在 0-255 之间，可以直接显示
+			cv::imshow("Detection Outputs", detection_outputs);
+		} else {
+			std::cerr << "Unsupported number of channels for display." << std::endl;
+			return;
+		}
+		// 等待用户按键，防止程序立即退出
+		cv::waitKey(0);*/
+
+		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+		for (int i = 0; i < detection_outputs.cols; ++i)
+		{
+			const cv::Mat classes_scores = detection_outputs.col(i).rowRange(4, detection_outputs.rows); // 4
+
+			cv::Point class_id;
+			double score;
+			cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id); // Find the class with the highest score
+
+			// Check if the detection meets the confidence threshold
+			if (score > model_confidence_threshold_)
+			{
+				// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs.col(i) << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << detection_outputs.col(i) << std::endl;
+
+				class_list.push_back(class_id.y);
+				confidence_list.push_back(score);
+				std::cout << score << "###" << std::endl;
+
+				const float x = detection_outputs.at<float>(0, i);
+				const float y = detection_outputs.at<float>(1, i);
+				const float w = detection_outputs.at<float>(2, i);
+				const float h = detection_outputs.at<float>(3, i);
+
+				cv::Rect box;
+				box.x = static_cast<int>(x);
+				box.y = static_cast<int>(y);
+				box.width = static_cast<int>(w);
+				box.height = static_cast<int>(h);
+				box_list.push_back(box);
+			}
+		}
+		// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs<< std::endl;
+		//  Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
+		std::vector<int> NMS_result;
+		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
+
+		// Collect final detections after NMS
+		for (int i = 0; i < NMS_result.size(); ++i)
+		{
+			Detection result;
+			const unsigned short id = NMS_result[i];
+			// std::cout << "NMS后的box_list ID"<<id << std::endl;
+			result.class_id = class_list[id];
+			result.confidence = confidence_list[id];
+			result.box = GetBoundingBox(box_list[id]);
+			result.Key_Point = key_list[id];
+			DrawDetectedObject(frame, result);
+		}
+	}
+
+	// Method to postprocess the inference results
+	void Inference::Pose_PostProcessing(cv::Mat &frame)
+	{
+		std::vector<int> class_list;
+		std::vector<float> confidence_list;
+		std::vector<cv::Rect> box_list;
+		std::vector<Key_PointAndFloat> key_list;
+		// Get the output tensor from the inference request
+		const float *detections = inference_request_.get_output_tensor().data<const float>();
+		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
+
+		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+		int labels_size = 2;
+		int labels__zhanwei = 3 + labels_size;
+		for (int i = 0; i < detection_outputs.cols; ++i)
+		{
+			const cv::Mat classes_scores = detection_outputs.col(i).rowRange(4, labels__zhanwei); // 现在是两类
+
+			cv::Point class_id;
+			double score;
+			cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id); // Find the class with the highest score
+
+			// Check if the detection meets the confidence threshold
+			if (score > model_confidence_threshold_)
+			{
+				// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs.col(i) << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << detection_outputs.col(i) << std::endl;
+
+				class_list.push_back(class_id.y);
+				confidence_list.push_back(score);
+				// std::cout << score << "_Pose" << std::endl;
+
+				const float x = detection_outputs.at<float>(0, i);
+				const float y = detection_outputs.at<float>(1, i);
+				const float w = detection_outputs.at<float>(2, i);
+				const float h = detection_outputs.at<float>(3, i);
+
+				Key_PointAndFloat paf;
+				for (int j = 0; j < int(detection_outputs.rows - labels__zhanwei) / 3; j++)
+				{
+					paf.key_point.push_back(cv::Point(detection_outputs.at<float>(labels__zhanwei + 1 + 3 * j, i), detection_outputs.at<float>(labels__zhanwei + 2 + 3 * j, i)));
+					paf.value.push_back(detection_outputs.at<float>(labels__zhanwei + 3 + 3 * j, i));
+				}
+				// std::cout<<paf.key_point[0]<<std::endl;
+				key_list.push_back(paf);
+
+				cv::Rect box;
+				box.x = static_cast<int>(x);
+				box.y = static_cast<int>(y);
+				box.width = static_cast<int>(w);
+				box.height = static_cast<int>(h);
+				box_list.push_back(box);
+			}
+		}
+		// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs<< std::endl;
+		//  Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
+		std::vector<int> NMS_result;
+		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
+
+		// Collect final detections after NMS
+		for (int i = 0; i < NMS_result.size(); ++i)
+		{
+			Detection result;
+			const unsigned short id = NMS_result[i];
+			// std::cout << "NMS后的box_list ID"<<id << std::endl;
+			result.class_id = class_list[id];
+			result.confidence = confidence_list[id];
+			result.box = GetBoundingBox(box_list[id]);
+			result.Key_Point = GetKeyPointsinBox(key_list[id]);
+			Pose_DrawDetectedObject(frame, result);
+		}
+	}
+
+	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
+	{
+
+		for (int i = 0; i < Key.key_point.size(); i++)
+		{
+			Key.key_point[i].x = Key.key_point[i].x * scale_factor_.x;
+			Key.key_point[i].y = Key.key_point[i].y * scale_factor_.y;
+		}
+		return Key;
+	}
+
+	// Method to get the bounding box in the correct scale
+	cv::Rect Inference::GetBoundingBox(const cv::Rect &src) const
+	{
+		cv::Rect box = src;
+		box.x = (box.x - box.width / 2) * scale_factor_.x;
+		box.y = (box.y - box.height / 2) * scale_factor_.y;
+		box.width *= scale_factor_.x;
+		box.height *= scale_factor_.y;
+		return box;
+	}
+
+	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
+	{
+
+		const cv::Rect &box = detection.box;
+		const float &confidence = detection.confidence;
+		const int &class_id = detection.class_id;
+		const Key_PointAndFloat &Key_points = detection.Key_Point;
+
+		// Generate a random color for the bounding box
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dis(120, 255);
+		const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
+		const cv::Scalar &Key_color = cv::Scalar(0, 255, 255);
+
+		float soufang = 0.75;
+		// Draw the bounding box around the detected object
+		cv::rectangle(frame, cv::Point(box.x - (box.width * 0.25), box.y - (box.height * 0.5)), cv::Point(box.x + box.width * 1.25, box.y + box.height * 1.5), color, 3);
+
+		// Prepare the class label and confidence text
+		std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
+
+		// Get the size of the text box
+		cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
+		cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
+
+		// Draw the text box
+		cv::rectangle(frame, textBox, color, cv::FILLED);
+
+		// Put the class label and confidence text above the bounding box
+		cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
+
+		// 做四个点
+		for (int i = 0; i < Key_points.key_point.size(); i++)
+		{
+			cv::circle(frame, Key_points.key_point[i], 2, Key_color, 2);
+			// std::cout << "点" << Key_points.key_point[i] << std::endl;
+			cv::Rect Key_textBox(Key_points.key_point[i].x + 10, Key_points.key_point[i].y + 10, textSize.width + 25, textSize.height + 5);
+			cv::rectangle(frame, Key_textBox, Key_color, cv::FILLED);
+			// std::cout << "点txt"  << std::endl;
+			cv::putText(frame, std::to_string(Key_points.value[i]), cv::Point(Key_textBox.x + 1, Key_textBox.y + 17), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
+		}
+		// 绘制第一对对角点的连线
+		cv::line(frame, Key_points.key_point[0], Key_points.key_point[2], cv::Scalar(0, 0, 255), 2);
+		// 绘制第二对对角点的连线
+		cv::line(frame, Key_points.key_point[1], Key_points.key_point[3], cv::Scalar(0, 255, 0), 2);
+	}
+
+	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
+	{
+		const cv::Rect &box = detection.box;
+		const float &confidence = detection.confidence;
+		const int &class_id = detection.class_id;
+
+		// Generate a random color for the bounding box
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dis(120, 255);
+		const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
+
+		// Draw the bounding box around the detected object
+		cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
+
+		// Prepare the class label and confidence text
+		std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
+
+		// Get the size of the text box
+		cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
+		cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
+
+		// Draw the text box
+		cv::rectangle(frame, textBox, color, cv::FILLED);
+
+		// Put the class label and confidence text above the bounding box
+		cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
+	}
+} // namespace yolo
