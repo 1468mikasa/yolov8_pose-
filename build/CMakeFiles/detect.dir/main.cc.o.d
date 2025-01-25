@@ -1,5 +1,5 @@
-CMakeFiles/detect.dir/main.cc.o: /home/auto/cpp_OpenVINO_yolov8/main.cc \
- /usr/include/stdc-predef.h /home/auto/cpp_OpenVINO_yolov8/inference.h \
+CMakeFiles/detect.dir/main.cc.o: /home/auto/Desktop/yolov8_pose-/main.cc \
+ /usr/include/stdc-predef.h /home/auto/Desktop/yolov8_pose-/inference.h \
  /usr/include/c++/11/string \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -349,9 +349,9 @@ CMakeFiles/detect.dir/main.cc.o: /home/auto/cpp_OpenVINO_yolov8/main.cc \
  /usr/include/c++/11/iomanip /usr/include/c++/11/bits/quoted_string.h \
  /opt/intel/openvino_2024.6.0/runtime/include/openvino/runtime/remote_context.hpp \
  /opt/intel/openvino_2024.6.0/runtime/include/openvino/runtime/remote_tensor.hpp \
- /home/auto/cpp_OpenVINO_yolov8/linuxSDK_V2.1.0.41/include/CameraApi.h \
- /home/auto/cpp_OpenVINO_yolov8/linuxSDK_V2.1.0.41/include/CameraDefine.h \
- /home/auto/cpp_OpenVINO_yolov8/linuxSDK_V2.1.0.41/include/CameraStatus.h \
+ /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraApi.h \
+ /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraDefine.h \
+ /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraStatus.h \
  /usr/include/opencv4/opencv2/imgproc/imgproc_c.h \
  /usr/include/opencv4/opencv2/imgproc/types_c.h \
  /usr/include/opencv4/opencv2/core/core_c.h \

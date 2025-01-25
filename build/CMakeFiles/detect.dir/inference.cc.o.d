@@ -1,6 +1,6 @@
 CMakeFiles/detect.dir/inference.cc.o: \
- /home/auto/cpp_OpenVINO_yolov8/inference.cc /usr/include/stdc-predef.h \
- /home/auto/cpp_OpenVINO_yolov8/inference.h /usr/include/c++/11/string \
+ /home/auto/Desktop/yolov8_pose-/inference.cc /usr/include/stdc-predef.h \
+ /home/auto/Desktop/yolov8_pose-/inference.h /usr/include/c++/11/string \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -363,4 +363,6 @@ CMakeFiles/detect.dir/inference.cc.o: \
  /usr/include/opencv4/opencv2/dnn/dnn.hpp /usr/include/c++/11/random \
  /usr/include/c++/11/bits/random.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
- /usr/include/c++/11/bits/random.tcc
+ /usr/include/c++/11/bits/random.tcc /usr/include/c++/11/thread \
+ /usr/include/c++/11/bits/std_thread.h \
+ /usr/include/c++/11/bits/this_thread_sleep.h

@@ -3,6 +3,7 @@
 #include <memory>
 #include <opencv2/dnn.hpp>
 #include <random>
+#include <thread>
 
 namespace yolo
 {
@@ -45,10 +46,10 @@ namespace yolo
 		model = ppp.build(); // Build the preprocessed model
 
 		// Compile the model for inference
-		//compiled_model_ = core.compile_model(model, "AUTO");
-		compiled_model_ = core.compile_model(model, "GPU");
+		// compiled_model_ = core.compile_model(model, "AUTO");
+		compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 
-		inference_request_ = compiled_model_.create_infer_request(); // 
+		inference_request_ = compiled_model_.create_infer_request(); //
 
 		short width, height;
 
@@ -77,26 +78,49 @@ namespace yolo
 
 	void Inference::Pose_RunInference(cv::Mat &frame)
 	{
-		Preprocessing(frame);		// Preprocess the input frame
-		//auto s = std::chrono::high_resolution_clock::now();
+		Preprocessing(frame); // Preprocess the input frame
+		// auto s = std::chrono::high_resolution_clock::now();
 		inference_request_.infer(); // Run inference
-		//auto e = std::chrono::high_resolution_clock::now();
-		//std::chrono::duration<double, std::milli> diff = e - s;
-		//std::cout<<diff.count()<<std::endl;
+		// auto e = std::chrono::high_resolution_clock::now();
+		// std::chrono::duration<double, std::milli> diff = e - s;
+		// std::cout<<diff.count()<<std::endl;
 
 		Pose_PostProcessing(frame); // Postprocess the inference results
 	}
 
-		void Inference::Pose_Run_async_Inference(cv::Mat &frame)
+	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-		Preprocessing(frame);		// Preprocess the input frame
-		auto s = std::chrono::high_resolution_clock::now();
-		inference_request_.start_async();// Run inference
-		inference_request_.wait();//
-		auto e = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> diff = e - s;
-		//std::cout<<diff.count()<<std::endl;
-		Pose_PostProcessing(frame); // Postprocess the inference results
+		if (flage == 1)
+		{
+		// 使用 lambda 捕获 frame，并处理推理结果
+		auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
+
+		// 设置回调函数
+		inference_request_.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
+										{
+        if (ex_ptr) {
+            try {
+                std::rethrow_exception(ex_ptr);
+            } catch (const std::exception& e) {
+               // std::cerr << "Error during inference: " << e.what() << std::endl;
+            }
+        }
+
+        // 调用 Pose_PostProcessing 并传递 frame
+        Pose_PostProcessing(*frame_ptr);
+		//std::cerr << "set_callback" << std::endl;
+		flage=1;
+		
+		 });
+
+		// 启动异步推理
+		//std::cerr << "Starting async inference..." << std::endl;
+
+
+			Preprocessing(frame);			  // Preprocess the input frame
+			inference_request_.start_async(); // 启动新的推理任务
+			flage = 0;
+		}
 	}
 
 	// Method to preprocess the input frame
@@ -124,21 +148,6 @@ namespace yolo
 		// Get the output tensor from the inference request
 		const float *detections = inference_request_.get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
-
-		/*if (detection_outputs.channels() == 1) {
-			// 如果是单通道矩阵，将其归一化到 0-255 的范围，以便显示
-			cv::Mat normalized_output;
-			cv::normalize(detection_outputs, normalized_output, 0, 255, cv::NORM_MINMAX, CV_8U);
-			cv::imshow("Detection Outputs", normalized_output);
-		} else if (detection_outputs.channels() == 3) {
-			// 如果是三通道矩阵，假设数据范围已经在 0-255 之间，可以直接显示
-			cv::imshow("Detection Outputs", detection_outputs);
-		} else {
-			std::cerr << "Unsupported number of channels for display." << std::endl;
-			return;
-		}
-		// 等待用户按键，防止程序立即退出
-		cv::waitKey(0);*/
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
 		for (int i = 0; i < detection_outputs.cols; ++i)
@@ -195,6 +204,11 @@ namespace yolo
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame)
 	{
+		std::cout << "The  Pose_PostProcessing成功  " << std::endl;
+		cv::imshow("show", frame);
+		std::cout << "显示成功  " << std::endl;
+
+
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
 		std::vector<cv::Rect> box_list;
@@ -335,10 +349,15 @@ namespace yolo
 		// 绘制第二对对角点的连线
 		cv::line(frame, Key_points.key_point[1], Key_points.key_point[3], cv::Scalar(0, 255, 0), 2);
 
-		std::cout<<"0   "<<Key_points.key_point[0].x<<"<<x y>>"<<Key_points.key_point[0].y<<std::endl;
-		std::cout<<"1	"<<Key_points.key_point[1].x<<"<<x y>>"<<Key_points.key_point[1].y<<std::endl;
-		std::cout<<"2	"<<Key_points.key_point[2].x<<"<<x y>>"<<Key_points.key_point[2].y<<std::endl;
-		std::cout<<"3	"<<Key_points.key_point[3].x<<"<<x y>>"<<Key_points.key_point[3].y<<std::endl;
+		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl;
+		std::cout << "1	" << Key_points.key_point[1].x << "<<x y>>" << Key_points.key_point[1].y << std::endl;
+		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
+		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
+
+
+		cv::imshow("show", frame);
+		cv::waitKey(1);
+
 	}
 
 	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const

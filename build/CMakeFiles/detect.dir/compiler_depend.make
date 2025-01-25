@@ -425,7 +425,10 @@ CMakeFiles/detect.dir/inference.cc.o: ../inference.cc \
   /usr/include/c++/11/random \
   /usr/include/c++/11/bits/random.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
-  /usr/include/c++/11/bits/random.tcc
+  /usr/include/c++/11/bits/random.tcc \
+  /usr/include/c++/11/thread \
+  /usr/include/c++/11/bits/std_thread.h \
+  /usr/include/c++/11/bits/this_thread_sleep.h
 
 CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/stdc-predef.h \
@@ -1040,6 +1043,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 
 /usr/include/c++/11/ctime:
 
+/usr/include/c++/11/thread:
+
 /usr/include/c++/11/ratio:
 
 /opt/intel/openvino_2024.6.0/runtime/include/openvino/core/layout.hpp:
@@ -1164,6 +1169,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 
 /usr/include/ctype.h:
 
+/usr/include/c++/11/bits/std_thread.h:
+
 /usr/include/c++/11/bits/cpp_type_traits.h:
 
 /usr/include/c++/11/bits/stl_iterator_base_funcs.h:
@@ -1245,6 +1252,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/bits/atomic_base.h:
 
 /usr/include/features.h:
+
+/usr/include/c++/11/bits/this_thread_sleep.h:
 
 /usr/include/c++/11/bits/locale_facets.tcc:
 

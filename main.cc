@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 
-	const std::string model_path = "/home/auto/cpp_OpenVINO_yolov8/model/best_openvino_model/best.xml";
+	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	double result = 0;
 	while (iDisplayFrames--)
 	{
-		auto start = std::chrono::high_resolution_clock::now();
+		
 		if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS)
 		{
 			CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
@@ -105,35 +105,14 @@ int main(int argc, char **argv)
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
 			}
+	
 
-			// Run inference on the input image
 			inference.Pose_Run_async_Inference(image);
-			//inference.Pose_RunInference(image);
-			// Display the image with the detections
-			cv::imshow("image", image);
-
-			int Key = waitKey(1);
-			if (Key == 'q' || Key == 'Q')
-			{ // 判断是否按下 Q 或 q 键
-				break;
-			}
-
-			// 在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
-			// 否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
+			std::cerr << "输入！@Pose_Run_async_Inference" << std::endl;
 			CameraReleaseImageBuffer(hCamera, pbyBuffer);
+
 		}
 
-		auto end = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> diff = end - start;
-		simage += 1;
-		time += diff.count();
-		if (time > 1000)
-		{
-			auto result = (simage / time) * 1000;
-			std::cout << result << "帧" << std::endl;
-			time = 0;
-			simage = 0;
-		}
 	}
 
 	CameraUnInit(hCamera);
