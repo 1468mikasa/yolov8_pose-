@@ -77,6 +77,7 @@ namespace yolo
 
 		if (flage == 1)
 		{
+			std::cout<<"flage=1"<<std::endl;
 			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			// 启动异步推理
         	// 使用 std::async 启动异步任务
@@ -90,11 +91,10 @@ namespace yolo
 			flage = 0;
 
 		}
-		/*
-		else
-		{
-		if (flage_ == 1)
-		{
+		else{
+	
+			if (flage_ == 1)
+			{
 			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			// 启动异步推理
         	// 使用 std::async 启动异步任务
@@ -105,12 +105,49 @@ namespace yolo
     		},
     		std::ref(Binference_request_));  
 
-			flage = 0;
+			flage_ = 0;
 
+			}
+			else{
+							if (flage__ == 1)
+			{
+			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
+			// 启动异步推理
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Preprocessing(*frame_ptr, inference_request_ref.get());
+    		},
+    		std::ref(Cinference_request_));  
+
+			flage__ = 0;
+
+			}
+			else
+			{
+							if (flage___ == 1)
+			{
+			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
+			// 启动异步推理
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Preprocessing(*frame_ptr, inference_request_ref.get());
+    		},
+    		std::ref(Dinference_request_));  
+
+			flage___ = 0;
+
+			}
+			}
+
+			}
 		}
 
 
-		}*/
+		
 
 	}
 
@@ -132,10 +169,11 @@ namespace yolo
 
 					// 使用 lambda 捕获 frame，并处理推理结果
 		auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-		auto inference_request_ptr = std::make_shared<ov::InferRequest>(inference_request); // Use shared_ptr to ensure frame's lifecycle
+		//auto inference_request_ptr = std::make_shared<ov::InferRequest>(inference_request); // Use shared_ptr to ensure frame's lifecycle
 
+		auto inference_request_ref = std::ref(inference_request);  // 包装成引用
 			// 设置回调函数
-		inference_request.set_callback([this, frame_ptr,inference_request_ptr](std::exception_ptr ex_ptr)
+		inference_request.set_callback([this, frame_ptr,inference_request_ref](std::exception_ptr ex_ptr)
 											{
 												if (ex_ptr)
 												{
@@ -151,13 +189,13 @@ namespace yolo
 
         	// 使用 std::async 启动异步任务
 			std::future<void> result = std::async(std::launch::async,
-    		[this, frame_ptr,inference_request_ptr]() {
+    		[this, frame_ptr,inference_request_ref]() {
         	// 使用 frame_ptr 和引用传递的 inference_request_
-        	Pose_PostProcessing(*frame_ptr,*inference_request_ptr);
+        	Pose_PostProcessing(*frame_ptr,inference_request_ref.get());
    			 });   // 使用 std::ref 传递引用
 												//Pose_PostProcessing(*frame_ptr,inference_request_);
 												//std::cout << "Pose_PostProcessing应该没完成" << std::endl;
-												flage = 1; });
+												});
 												
 			inference_request.start_async();		  // 启动新的推理任务
 		
@@ -168,16 +206,45 @@ namespace yolo
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request)
 	{
-		//std::cout << "Pose_PostProcessing进入" << std::endl;
+
 		// std::cout << "The  Pose_PostProcessing成功  " << std::endl;
 		// auto frame_copy = frame.clone();  // 创建一个副本
+		const float *detections = inference_request.get_output_tensor().data<const float>();//赶紧用掉inference_request解锁
+		//std::cout << "Pose_PostProcessing进入" << std::endl;
+
+
+		if (&inference_request == &Ainference_request_)
+		{
+			std::cout<<"A"<<std::endl;
+			flage = 1; 
+		}
+		if (&inference_request == &Binference_request_)
+		{
+			flage_ = 1; 
+						std::cout<<"B"<<std::endl;
+		}
+
+		if (&inference_request == &Cinference_request_)
+		{
+						std::cout<<"C"<<std::endl;
+			flage__ = 1; 
+		}
+		if (&inference_request == &Dinference_request_)
+		{
+			flage___ = 1; 
+			std::cout<<"D"<<std::endl;
+		}
+
+
+
+
 
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
 		std::vector<cv::Rect> box_list;
 		std::vector<Key_PointAndFloat> key_list;
 		// Get the output tensor from the inference request
-		const float *detections = inference_request.get_output_tensor().data<const float>();
+
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;

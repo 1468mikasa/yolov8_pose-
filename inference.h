@@ -24,9 +24,7 @@ struct Detection {
 };
 
 enum class ProcessState {
-    Ainference_request_OK,
 	Ainference_request_RUN,  
-    Binference_request_OK,
 	Binference_request_RUN,
     
 };
@@ -37,7 +35,7 @@ class Inference {
 	int flage_=1;
 	int flage__=1;
 	int flage___=1;
-	ProcessState run=ProcessState::Ainference_request_OK;
+	ProcessState run=ProcessState::Ainference_request_RUN;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
