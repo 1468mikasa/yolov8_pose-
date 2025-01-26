@@ -428,7 +428,10 @@ CMakeFiles/detect.dir/inference.cc.o: ../inference.cc \
   /usr/include/c++/11/bits/random.tcc \
   /usr/include/c++/11/thread \
   /usr/include/c++/11/bits/std_thread.h \
-  /usr/include/c++/11/bits/this_thread_sleep.h
+  /usr/include/c++/11/bits/this_thread_sleep.h \
+  /usr/include/c++/11/future \
+  /usr/include/c++/11/condition_variable \
+  /usr/include/c++/11/bits/atomic_futex.h
 
 CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/stdc-predef.h \
@@ -850,7 +853,11 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/opencv4/opencv2/highgui/highgui.hpp \
   /usr/include/opencv4/opencv2/highgui.hpp \
   /usr/include/opencv4/opencv2/imgcodecs.hpp \
-  /usr/include/opencv4/opencv2/videoio.hpp
+  /usr/include/opencv4/opencv2/videoio.hpp \
+  /usr/include/c++/11/future \
+  /usr/include/c++/11/condition_variable \
+  /usr/include/c++/11/bits/atomic_futex.h \
+  /usr/include/c++/11/bits/std_thread.h
 
 
 /usr/include/opencv4/opencv2/highgui/highgui.hpp:
@@ -1043,6 +1050,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 
 /usr/include/c++/11/ctime:
 
+/usr/include/c++/11/condition_variable:
+
 /usr/include/c++/11/thread:
 
 /usr/include/c++/11/ratio:
@@ -1092,6 +1101,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/ext/new_allocator.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/c++/11/future:
 
 /usr/include/x86_64-linux-gnu/sys/types.h:
 
@@ -1336,6 +1347,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/functional:
 
 /usr/include/linux/errno.h:
+
+/usr/include/c++/11/bits/atomic_futex.h:
 
 /opt/intel/openvino_2024.6.0/runtime/include/openvino/core/node_input.hpp:
 

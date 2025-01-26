@@ -23,6 +23,13 @@ struct Detection {
 	Key_PointAndFloat Key_Point;
 };
 
+enum class ProcessState {
+    Ainference_request_OK,
+	Ainference_request_RUN,  
+    Binference_request_OK,
+	Binference_request_RUN,
+    
+};
 class Inference {
  public:
  double huamianshu=0;
@@ -30,6 +37,7 @@ class Inference {
 	int flage_=1;
 	int flage__=1;
 	int flage___=1;
+	ProcessState run=ProcessState::Ainference_request_OK;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
@@ -41,9 +49,11 @@ class Inference {
 	void Pose_Run_async_Inference(cv::Mat &frame);
  private:
 	void InitializeModel(const std::string &model_path);
-	void Preprocessing(const cv::Mat &frame,ov::InferRequest &inference_request);
+
+
+	void Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request);//yu
 	//void Pose_PostProcessing(cv::Mat &frame);
-	void Pose_PostProcessing(cv::Mat &frame,ov::InferRequest &inference_request);
+	void Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request);//hou
 	
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);
@@ -53,11 +63,11 @@ class Inference {
 	cv::Size2f model_input_shape_;	// Input shape of the model
 	cv::Size model_output_shape_;		// Output shape of the model
 
-	ov::InferRequest inference_request_;  // OpenVINO inference request
-	ov::InferRequest infer_request;  // OpenVINO inference request
-		ov::InferRequest Binfer_request;  // OpenVINO inference request
-			ov::InferRequest Cinfer_request;  // OpenVINO inference request
-				ov::InferRequest Dinfer_request;  // OpenVINO inference request
+
+	ov::InferRequest Ainference_request_;  // OpenVINO inference request
+	ov::InferRequest Binference_request_;  // OpenVINO inference request
+	ov::InferRequest Cinference_request_;  // OpenVINO inference request
+	ov::InferRequest Dinference_request_;  // OpenVINO inference request
 
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 

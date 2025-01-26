@@ -5,7 +5,6 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <stdio.h>
 #include <chrono>
-#include <future>
 using namespace cv;
 
 unsigned char *g_pRgbBuffer; // 处理后数据缓存区
@@ -79,7 +78,7 @@ int main(int argc, char **argv)
 
 	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
-	const float confidence_threshold = 0.2;
+	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
 
 	// Initialize the YOLO inference with the specified model and parameters
@@ -111,8 +110,9 @@ int main(int argc, char **argv)
 	
 	auto s = std::chrono::high_resolution_clock::now();
 
-	
 			inference.Pose_Run_async_Inference(image);
+
+			
 
 			//std::cerr << "@@@@@ 输入！@@@@" << std::endl;
 	

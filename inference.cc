@@ -4,6 +4,7 @@
 #include <opencv2/dnn.hpp>
 #include <random>
 #include <thread>
+#include <future>
 
 namespace yolo
 {
@@ -49,11 +50,10 @@ namespace yolo
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 
-		inference_request_ = compiled_model_.create_infer_request(); //
-		infer_request= compiled_model_.create_infer_request(); //
-		Binfer_request= compiled_model_.create_infer_request(); //
-		Cinfer_request= compiled_model_.create_infer_request(); //
-		Dinfer_request= compiled_model_.create_infer_request(); //
+		Ainference_request_ = compiled_model_.create_infer_request(); 
+		Binference_request_ = compiled_model_.create_infer_request();		 
+		Cinference_request_ = compiled_model_.create_infer_request();	 
+		Dinference_request_ = compiled_model_.create_infer_request();	 
 
 		short width, height;
 
@@ -77,165 +77,45 @@ namespace yolo
 
 		if (flage == 1)
 		{
-			huamianshu+=1;
-			// 使用 lambda 捕获 frame，并处理推理结果
-			auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-
-			// 设置回调函数
-			inference_request_.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
-											{
-												if (ex_ptr)
-												{
-													try
-													{
-														std::rethrow_exception(ex_ptr);
-													}
-													catch (const std::exception &e)
-													{
-														// std::cerr << "Error during inference: " << e.what() << std::endl;
-													}
-												}
-
-												// 调用 Pose_PostProcessing 并传递 frame
-												Pose_PostProcessing(*frame_ptr,inference_request_);
-												// std::cerr << "set_callback" << std::endl;
-												flage = 1;
-											});
-
+			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			// 启动异步推理
-			// std::cerr << "Starting async inference..." << std::endl;
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Preprocessing(*frame_ptr, inference_request_ref.get());
+    		},
+    		std::ref(Ainference_request_));  
 
-			Preprocessing(frame,inference_request_);			  // Preprocess the input frame
-			inference_request_.start_async(); // 启动新的推理任务
 			flage = 0;
-			//infer_request.start_async();
 
-			std::cout << "画面"<<huamianshu<< std::endl;
 		}
+		/*
 		else
 		{
 		if (flage_ == 1)
 		{
-			huamianshu+=1;
-			// 使用 lambda 捕获 frame，并处理推理结果
-			auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-
-			// 设置回调函数
-			infer_request.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
-											{
-												if (ex_ptr)
-												{
-													try
-													{
-														std::rethrow_exception(ex_ptr);
-													}
-													catch (const std::exception &e)
-													{
-														// std::cerr << "Error during inference: " << e.what() << std::endl;
-													}
-												}
-
-												// 调用 Pose_PostProcessing 并传递 frame
-												Pose_PostProcessing(*frame_ptr,infer_request);
-												// std::cerr << "set_callback" << std::endl;
-												flage_ = 1;
-											});
-
+			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			// 启动异步推理
-			// std::cerr << "Starting async inference..." << std::endl;
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Preprocessing(*frame_ptr, inference_request_ref.get());
+    		},
+    		std::ref(Binference_request_));  
 
-			Preprocessing(frame,infer_request);			  // Preprocess the input frame
-			infer_request.start_async(); // 启动新的推理任务
-			flage_ = 0;
-
-			std::cout << "画面"<<huamianshu<< std::endl;
-		}
-		else
-		{
-		if (flage__ == 1)
-		{
-			huamianshu+=1;
-			// 使用 lambda 捕获 frame，并处理推理结果
-			auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-
-			// 设置回调函数
-			Binfer_request.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
-											{
-												if (ex_ptr)
-												{
-													try
-													{
-														std::rethrow_exception(ex_ptr);
-													}
-													catch (const std::exception &e)
-													{
-														// std::cerr << "Error during inference: " << e.what() << std::endl;
-													}
-												}
-
-												// 调用 Pose_PostProcessing 并传递 frame
-												Pose_PostProcessing(*frame_ptr,Binfer_request);
-												// std::cerr << "set_callback" << std::endl;
-												flage__ = 1;
-											});
-
-			// 启动异步推理
-			// std::cerr << "Starting async inference..." << std::endl;
-
-			Preprocessing(frame,Binfer_request);			  // Preprocess the input frame
-			Binfer_request.start_async(); // 启动新的推理任务
-			flage__ = 0;
-
-			std::cout << "画面"<<huamianshu<< std::endl;
-		}
-		else
-		{
-		if (flage___ == 1)
-		{
-			huamianshu+=1;
-			// 使用 lambda 捕获 frame，并处理推理结果
-			auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-
-			// 设置回调函数
-			Cinfer_request.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
-											{
-												if (ex_ptr)
-												{
-													try
-													{
-														std::rethrow_exception(ex_ptr);
-													}
-													catch (const std::exception &e)
-													{
-														// std::cerr << "Error during inference: " << e.what() << std::endl;
-													}
-												}
-
-												// 调用 Pose_PostProcessing 并传递 frame
-												Pose_PostProcessing(*frame_ptr,Cinfer_request);
-												// std::cerr << "set_callback" << std::endl;
-												flage___ = 1;
-											});
-
-			// 启动异步推理
-			// std::cerr << "Starting async inference..." << std::endl;
-
-			Preprocessing(frame,Cinfer_request);			  // Preprocess the input frame
-			Cinfer_request.start_async(); // 启动新的推理任务
-			flage___ = 0;
-
-			std::cout << "画面"<<huamianshu<< std::endl;
-		}
-		}
+			flage = 0;
 
 		}
 
-		}
+
+		}*/
 
 	}
 
 	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame,ov::InferRequest &inference_request)
+	void Inference::Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request)
 	{
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
@@ -246,16 +126,51 @@ namespace yolo
 
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
-		inference_request.set_input_tensor(input_tensor);																						 // Set input tensor for inference
+		inference_request.set_input_tensor(input_tensor);	
+
+		//std::cout << "画面" << huamianshu << std::endl;
+
+					// 使用 lambda 捕获 frame，并处理推理结果
+		auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
+		auto inference_request_ptr = std::make_shared<ov::InferRequest>(inference_request); // Use shared_ptr to ensure frame's lifecycle
+
+			// 设置回调函数
+		inference_request.set_callback([this, frame_ptr,inference_request_ptr](std::exception_ptr ex_ptr)
+											{
+												if (ex_ptr)
+												{
+													try
+													{
+														std::rethrow_exception(ex_ptr);
+													}
+													catch (const std::exception &e)
+													{
+														std::cerr << "Error during inference: " << e.what() << std::endl;
+													}
+												}
+
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr,inference_request_ptr]() {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Pose_PostProcessing(*frame_ptr,*inference_request_ptr);
+   			 });   // 使用 std::ref 传递引用
+												//Pose_PostProcessing(*frame_ptr,inference_request_);
+												//std::cout << "Pose_PostProcessing应该没完成" << std::endl;
+												flage = 1; });
+												
+			inference_request.start_async();		  // 启动新的推理任务
+		
+
+																					 // Set input tensor for inference
 	}
 
-
 	// Method to postprocess the inference results
-	void Inference::Pose_PostProcessing(cv::Mat &frame,ov::InferRequest &inference_request)
+	void Inference::Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request)
 	{
-		//std::cout << "The  Pose_PostProcessing成功  " << std::endl;
-		//auto frame_copy = frame.clone();  // 创建一个副本
-
+		//std::cout << "Pose_PostProcessing进入" << std::endl;
+		// std::cout << "The  Pose_PostProcessing成功  " << std::endl;
+		// auto frame_copy = frame.clone();  // 创建一个副本
 
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
@@ -314,13 +229,19 @@ namespace yolo
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
-		if(NMS_result.size()==0)
+		if (NMS_result.size() == 0)
 		{
-					cv::imshow("Ashow", frame);
-		//std::cout << "显示成功  " << std::endl;
-		cv::waitKey(1);
-		}
+			cv::imshow("Ashow", frame);
 
+			cv::waitKey(1);
+		}
+		else
+		{
+
+			std::cout << "识别成功  " << std::endl;
+		}
+		huamianshu += 1;
+		std::cout<<"后处理画面数："<<huamianshu<<std::endl;
 		// Collect final detections after NMS
 		for (int i = 0; i < NMS_result.size(); ++i)
 		{
@@ -333,6 +254,8 @@ namespace yolo
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 			Pose_DrawDetectedObject(frame, result);
 		}
+
+		//std::cout << "Pose_PostProcessing完成" << std::endl;
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -359,8 +282,8 @@ namespace yolo
 
 	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
 	{
-		//auto frame = frame_.clone();  // 创建一个副本
-		//std::cout << "识别 " << std::endl;
+		// auto frame = frame_.clone();  // 创建一个副本
+		// std::cout << "识别 " << std::endl;
 		const cv::Rect &box = detection.box;
 		const float &confidence = detection.confidence;
 		const int &class_id = detection.class_id;
@@ -411,10 +334,10 @@ namespace yolo
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
 
 		// cv::imshow("show", frame);
-//auto frame_copy = frame.clone();  // 创建一个副本
+		// auto frame_copy = frame.clone();  // 创建一个副本
 		cv::imshow("Ashow", frame);
 
-		//std::cout << "显示成功  " << std::endl;
+		// std::cout << "显示成功  " << std::endl;
 		cv::waitKey(1);
 	}
 

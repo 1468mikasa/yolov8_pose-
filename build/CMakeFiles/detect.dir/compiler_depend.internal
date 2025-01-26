@@ -430,6 +430,9 @@ CMakeFiles/detect.dir/inference.cc.o
  /usr/include/c++/11/thread
  /usr/include/c++/11/bits/std_thread.h
  /usr/include/c++/11/bits/this_thread_sleep.h
+ /usr/include/c++/11/future
+ /usr/include/c++/11/condition_variable
+ /usr/include/c++/11/bits/atomic_futex.h
 
 CMakeFiles/detect.dir/main.cc.o
  /home/auto/Desktop/yolov8_pose-/main.cc
@@ -853,4 +856,8 @@ CMakeFiles/detect.dir/main.cc.o
  /usr/include/opencv4/opencv2/highgui.hpp
  /usr/include/opencv4/opencv2/imgcodecs.hpp
  /usr/include/opencv4/opencv2/videoio.hpp
+ /usr/include/c++/11/future
+ /usr/include/c++/11/condition_variable
+ /usr/include/c++/11/bits/atomic_futex.h
+ /usr/include/c++/11/bits/std_thread.h
 

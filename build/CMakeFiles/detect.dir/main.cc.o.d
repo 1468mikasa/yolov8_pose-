@@ -360,4 +360,7 @@ CMakeFiles/detect.dir/main.cc.o: /home/auto/Desktop/yolov8_pose-/main.cc \
  /usr/include/opencv4/opencv2/highgui/highgui.hpp \
  /usr/include/opencv4/opencv2/highgui.hpp \
  /usr/include/opencv4/opencv2/imgcodecs.hpp \
- /usr/include/opencv4/opencv2/videoio.hpp
+ /usr/include/opencv4/opencv2/videoio.hpp /usr/include/c++/11/future \
+ /usr/include/c++/11/condition_variable \
+ /usr/include/c++/11/bits/atomic_futex.h \
+ /usr/include/c++/11/bits/std_thread.h
