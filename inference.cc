@@ -91,6 +91,7 @@ namespace yolo
 			flage = 0;
 
 		}
+		/*
 		else{
 	
 			if (flage_ == 1)
@@ -108,6 +109,8 @@ namespace yolo
 			flage_ = 0;
 
 			}
+		}
+		/*
 			else{
 							if (flage__ == 1)
 			{
@@ -144,7 +147,7 @@ namespace yolo
 			}
 
 			}
-		}
+		}*/
 
 
 		
@@ -223,7 +226,7 @@ namespace yolo
 			flage_ = 1; 
 						std::cout<<"B"<<std::endl;
 		}
-
+/*
 		if (&inference_request == &Cinference_request_)
 		{
 						std::cout<<"C"<<std::endl;
@@ -234,7 +237,7 @@ namespace yolo
 			flage___ = 1; 
 			std::cout<<"D"<<std::endl;
 		}
-
+*/
 
 
 
@@ -308,7 +311,7 @@ namespace yolo
 			std::cout << "识别成功  " << std::endl;
 		}
 		huamianshu += 1;
-		std::cout<<"后处理画面数："<<huamianshu<<std::endl;
+		//std::cout<<"后处理画面数："<<huamianshu<<std::endl;
 		// Collect final detections after NMS
 		for (int i = 0; i < NMS_result.size(); ++i)
 		{

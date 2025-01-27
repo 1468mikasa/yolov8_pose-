@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		channel = 3;
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
-
+	//const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.2;
@@ -85,14 +85,19 @@ int main(int argc, char **argv)
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+
+	//yolo::Inference Cinference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
 	double result = 0;
+	double shanchu=0;
+	std::vector<cv::Mat> images;
 	while (iDisplayFrames--)
 	{
 
-
+		auto s = std::chrono::high_resolution_clock::now();
 		if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS)
 		{
 			CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
@@ -108,28 +113,55 @@ int main(int argc, char **argv)
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
 			}
-	
-	auto s = std::chrono::high_resolution_clock::now();
+			images.push_back(image);
 
-	
-			inference.Pose_Run_async_Inference(image);
-
-			//std::cerr << "@@@@@ 输入！@@@@" << std::endl;
-	
+			// std::cerr << "@@@@@ 输入！@@@@" << std::endl;
 
 			CameraReleaseImageBuffer(hCamera, pbyBuffer);
 
-		auto e = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> diff = e - s;
+			simage += 1;
+			std::cout << "simage 画面:" << simage << std::endl;
+		}
 
-		time += diff.count();  
-		std::cout<<"time:"<<time<<std::endl;
-			simage+=1;
+		if(inference.huamianshu>0)
+			{
+			shanchu+=1;
+			images.erase(images.begin(), images.begin() + inference.huamianshu);
+						 inference.huamianshu=0;
+		std::cout << "0_shanchu=="<<shanchu<< std::endl;
+			}
+		if(Ainference.huamianshu>0)
+			{
+			shanchu+=1;
+			images.erase(images.begin(), images.begin() + Ainference.huamianshu);
+						 Ainference.huamianshu=0;
+		std::cout << "A_shanchu=="<<shanchu<< std::endl;
+			}
 
+		if (images.size() > 1)
+		{
+			inference.Pose_Run_async_Inference(images[0]);
+			Ainference.Pose_Run_async_Inference(images[1]);
+		}
+		else
+		{
+
+
+		if (images.size() > 0)
+		{
+			inference.Pose_Run_async_Inference(images[0]);
+		}
+		
 		}
 
 
-		std::cout<<"simage 画面:"<<simage<<std::endl;
+
+		std::cout << "images.size()=="<<images.size()<< std::endl;
+
+		auto e = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> diff = e - s;
+		time += diff.count();
+		std::cout << "time:" << time << std::endl;
 	}
 
 	CameraUnInit(hCamera);
