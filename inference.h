@@ -30,6 +30,8 @@ enum class ProcessState {
 };
 class Inference {
  public:
+ double Pose_Run_time=0;
+double Pose_Run_img=0;
  double huamianshu=0;
 	int flage=1;
 	int flage_=1;
