@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <chrono>
 #include <future>
+#include <atomic>
 using namespace cv;
 
 unsigned char *g_pRgbBuffer; // 处理后数据缓存区
@@ -96,6 +97,13 @@ int main(int argc, char **argv)
 	double shanchu=0;
 	std::vector<cv::Mat> images;
 
+	std::vector<cv::Mat> bufferA;
+std::vector<cv::Mat> bufferB;
+std::atomic<bool> processing_bufferA(false);
+std::atomic<bool> processing_bufferB(false);
+
+
+
 	while (iDisplayFrames--)
 	{
 
@@ -143,8 +151,8 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 			//7ms
 
 		}
-		
-		get_image_future.wait(); 
+
+		//get_image_future.wait(); 
 
 		auto e = std::chrono::high_resolution_clock::now();
 
