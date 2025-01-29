@@ -133,33 +133,17 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 });
 
 		 
-		
-		if(inference.huamianshu>0&& images.size() >inference.huamianshu)
-			{
-			shanchu+=inference.huamianshu;
-			images.erase(images.begin(), images.begin() + inference.huamianshu);
-						 inference.huamianshu=0;
-		std::cout << "0_shanchu=="<<shanchu<< std::endl;
-			}
-		if(Ainference.huamianshu>0 && images.size() >Ainference.huamianshu)
-			{
-			shanchu+=Ainference.huamianshu;
-			images.erase(images.begin(), images.begin() + Ainference.huamianshu);
-						 Ainference.huamianshu=0;
-		std::cout << "A_shanchu=="<<shanchu<< std::endl;
-			}
-				
+	
+
 
 		if (images.size() > 1)
 		{
-
-
-			inference.Pose_Run_async_Inference(images[images.size()-1]);		
-			Ainference.Pose_Run_async_Inference(images[images.size()-2]);
+		inference.Pose_Run_async_Inference(images[images.size()-2]);
+		Ainference.Pose_Run_async_Inference(images[images.size()-1]);
 			//Binference.Pose_Run_async_Inference(images[2]);
-			//7ms
-
 		}
+
+		
 
 		get_image_future.wait(); 
 

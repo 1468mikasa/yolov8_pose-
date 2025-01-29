@@ -51,7 +51,7 @@ namespace yolo
 		compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 
 		Ainference_request_ = compiled_model_.create_infer_request(); 
-		Binference_request_ = compiled_model_.create_infer_request();		 
+		//Binference_request_ = compiled_model_.create_infer_request();		 
 
 
 		short width, height;
@@ -214,7 +214,7 @@ namespace yolo
 			std::cout<<"A"<<std::endl;
 			flage = 1; 
 		}
-		
+
 		/*
 		if (&inference_request == &Binference_request_)
 		{
@@ -294,17 +294,6 @@ namespace yolo
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
-		if (NMS_result.size() == 0)
-		{
-			cv::imshow("Ashow", frame);
-
-			cv::waitKey(1);
-		}
-		else
-		{
-
-			std::cout << "识别成功  " << std::endl;
-		}
 		huamianshu += 1;
 		//std::cout<<"后处理画面数："<<huamianshu<<std::endl;
 		// Collect final detections after NMS
@@ -321,7 +310,7 @@ namespace yolo
 			Pose_DrawDetectedObject(frame, result);
 
 
-		}
+		} 
 
 		//std::cout << "Pose_PostProcessing完成" << std::endl;
 	}
@@ -401,11 +390,7 @@ namespace yolo
 		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
 
-		// cv::imshow("show", frame);
-		// auto frame_copy = frame.clone();  // 创建一个副本
-		cv::imshow("Ashow", frame);
-
-		// std::cout << "显示成功  " << std::endl;
+		cv::imshow("show", frame);
 		cv::waitKey(1);
 	}
 
