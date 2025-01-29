@@ -69,19 +69,19 @@ include CMakeFiles/detect.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/detect.dir/flags.make
 
-CMakeFiles/detect.dir/main.cc.o: CMakeFiles/detect.dir/flags.make
-CMakeFiles/detect.dir/main.cc.o: ../main.cc
-CMakeFiles/detect.dir/main.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/auto/Desktop/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/main.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/main.cc.o -MF CMakeFiles/detect.dir/main.cc.o.d -o CMakeFiles/detect.dir/main.cc.o -c /home/auto/Desktop/yolov8_pose-/main.cc
+CMakeFiles/detect.dir/chatGPT.cc.o: CMakeFiles/detect.dir/flags.make
+CMakeFiles/detect.dir/chatGPT.cc.o: ../chatGPT.cc
+CMakeFiles/detect.dir/chatGPT.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/auto/Desktop/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/chatGPT.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/chatGPT.cc.o -MF CMakeFiles/detect.dir/chatGPT.cc.o.d -o CMakeFiles/detect.dir/chatGPT.cc.o -c /home/auto/Desktop/yolov8_pose-/chatGPT.cc
 
-CMakeFiles/detect.dir/main.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/main.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/auto/Desktop/yolov8_pose-/main.cc > CMakeFiles/detect.dir/main.cc.i
+CMakeFiles/detect.dir/chatGPT.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/chatGPT.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/auto/Desktop/yolov8_pose-/chatGPT.cc > CMakeFiles/detect.dir/chatGPT.cc.i
 
-CMakeFiles/detect.dir/main.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/main.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/auto/Desktop/yolov8_pose-/main.cc -o CMakeFiles/detect.dir/main.cc.s
+CMakeFiles/detect.dir/chatGPT.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/chatGPT.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/auto/Desktop/yolov8_pose-/chatGPT.cc -o CMakeFiles/detect.dir/chatGPT.cc.s
 
 CMakeFiles/detect.dir/inference.cc.o: CMakeFiles/detect.dir/flags.make
 CMakeFiles/detect.dir/inference.cc.o: ../inference.cc
@@ -99,13 +99,13 @@ CMakeFiles/detect.dir/inference.cc.s: cmake_force
 
 # Object files for target detect
 detect_OBJECTS = \
-"CMakeFiles/detect.dir/main.cc.o" \
+"CMakeFiles/detect.dir/chatGPT.cc.o" \
 "CMakeFiles/detect.dir/inference.cc.o"
 
 # External object files for target detect
 detect_EXTERNAL_OBJECTS =
 
-detect: CMakeFiles/detect.dir/main.cc.o
+detect: CMakeFiles/detect.dir/chatGPT.cc.o
 detect: CMakeFiles/detect.dir/inference.cc.o
 detect: CMakeFiles/detect.dir/build.make
 detect: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.5.4d

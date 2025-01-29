@@ -213,6 +213,8 @@ namespace yolo
 		{
 			std::cout<<"A"<<std::endl;
 			flage = 1; 
+			        cv::imshow("show",frame);
+        cv::waitKey(1);
 		}
 
 		/*

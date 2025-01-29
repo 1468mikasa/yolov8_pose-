@@ -13,8 +13,9 @@ include_directories(
 )
 
 add_executable(detect 
-    main.cc
-    #luzhi.cc
+#    main.cc
+#kimi.cc
+chatGPT.cc
     inference.cc
 
     #onnx2openvino.cpp

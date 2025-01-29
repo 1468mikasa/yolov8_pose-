@@ -21,10 +21,13 @@ std::queue<cv::Mat> taskQueue;
 std::mutex queueMutex;
 std::condition_variable queueCV;
 std::atomic<bool> stopThreads(false);
+std::atomic<int> inference_count(0); // 推理帧数统计
 
 // 推理线程函数
 void inferenceThread(yolo::Inference& inference) {
+    std::cout << "Inference thread started.void" << std::endl; 
     while (!stopThreads) {
+        std::cout << "Inference thread started.while" << std::endl; 
         std::unique_lock<std::mutex> lock(queueMutex);
         queueCV.wait(lock, [] { return !taskQueue.empty() || stopThreads; });
 
@@ -37,8 +40,14 @@ void inferenceThread(yolo::Inference& inference) {
         taskQueue.pop();
         lock.unlock();
 
-        // 运行异步推理
-        inference.Pose_Run_async_Inference(frame);
+        try {
+            // 运行异步推理
+            std::cerr << "try" <<  std::endl;
+            inference.Pose_Run_async_Inference(frame);
+            inference_count++; // 更新推理帧数统计
+        } catch (const std::exception& e) {
+            std::cerr << "Inference error: " << e.what() << std::endl;
+        }
     }
 }
 
@@ -78,7 +87,9 @@ int main(int argc, char **argv) {
 
     // 开始接收图像数据
     CameraPlay(hCamera);
-
+	CameraSetAeState(hCamera, false);
+	CameraSetExposureTime(hCamera, 2500); 
+    	CameraSetGain(hCamera, 255,255,255); 
     // 初始化模型
     const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
     const float confidence_threshold = 0.2;
@@ -91,10 +102,9 @@ int main(int argc, char **argv) {
     std::vector<std::thread> threads;
     threads.emplace_back(inferenceThread, std::ref(inference));
     threads.emplace_back(inferenceThread, std::ref(Ainference));
-
+std::cout << "Inference threads created: " << threads.size() << std::endl;
     double simage = 0;
     double time = 0;
-    double shanchu = 0;
 
     while (iDisplayFrames--) {
         auto s = std::chrono::high_resolution_clock::now();
@@ -107,8 +117,12 @@ int main(int argc, char **argv) {
                     sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
                     g_pRgbBuffer);
                 if (!image.empty()) {
+                    cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
                     std::lock_guard<std::mutex> lock(queueMutex);
                     taskQueue.push(image);
+			        cv::imshow("AshowA",image);
+                    cv::waitKey(1);
+                    
                 }
                 simage += 1;
                 CameraReleaseImageBuffer(hCamera, pbyBuffer);
@@ -124,7 +138,7 @@ int main(int argc, char **argv) {
         std::cout << "diff.count():" << diff.count() << std::endl;
 
         std::cout << "相机帧:" << simage / time * 1000 << std::endl;
-        std::cout << "推理帧:" << shanchu / time * 1000 << std::endl;
+        std::cout << "推理帧:" << inference_count / time * 1000 << std::endl;
     }
 
     // 停止所有线程

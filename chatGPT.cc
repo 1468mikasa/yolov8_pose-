@@ -1,107 +1,98 @@
-int main(int argc, char** argv) {
-    int iCameraCounts = 1;
-    int iStatus = -1;
-    tSdkCameraDevInfo tCameraEnumList;
-    int hCamera;
-    tSdkCameraCapbility tCapability; // Éè±¸ÃèÊöĞÅÏ¢
-    tSdkFrameHead sFrameInfo;
-    BYTE* pbyBuffer;
-    int iDisplayFrames = 10000;
-    IplImage* iplImage = NULL;
-    int channel = 3;
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <functional>
+#include <queue>
+#include <condition_variable>
+#include <atomic>
+#include <future>
 
-    CameraSdkInit(1);
+class ThreadPool {
+public:
+    ThreadPool(size_t numThreads) : stop(false) {
+        for (size_t i = 0; i < numThreads; ++i) {
+            workers.emplace_back([this] {
+                while (true) {
+                    std::function<void()> task;
+                    std::shared_ptr<std::promise<void>> taskPromise;
 
-    // Ã¶¾ÙÉè±¸£¬²¢½¨Á¢Éè±¸ÁĞ±í
-    iStatus = CameraEnumerateDevice(&tCameraEnumList, &iCameraCounts);
-    printf("state = %d\n", iStatus);
+                    {
+                        std::unique_lock<std::mutex> lock(this->queueMutex);
+                        this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
+                        if (this->stop && this->tasks.empty()) {
+                            return;
+                        }
 
-    printf("count = %d\n", iCameraCounts);
-    if (iCameraCounts == 0) {
-        return -1;
-    }
+                        task = std::move(this->tasks.front().first);
+                        taskPromise = this->tasks.front().second;
+                        this->tasks.pop();
+                    }
 
-    // Ïà»ú³õÊ¼»¯
-    iStatus = CameraInit(&tCameraEnumList, -1, -1, &hCamera);
-    printf("state = %d\n", iStatus);
-    if (iStatus != CAMERA_STATUS_SUCCESS) {
-        return -1;
-    }
+                    task();  // æ‰§è¡Œä»»åŠ¡
 
-    // »ñµÃÏà»úµÄÌØĞÔÃèÊö½á¹¹Ìå
-    CameraGetCapability(hCamera, &tCapability);
-    g_pRgbBuffer = (unsigned char*)malloc(tCapability.sResolutionRange.iHeightMax * tCapability.sResolutionRange.iWidthMax * 3);
-
-    // ¿ªÊ¼½ÓÊÕÍ¼ÏñÊı¾İ
-    CameraPlay(hCamera);
-
-    // ³õÊ¼»¯Ä£ĞÍ
-    const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
-    const float confidence_threshold = 0.2;
-    const float NMS_threshold = 0.5;
-
-    yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-    yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-
-    // ´´½¨Ïß³Ì³Ø
-    ThreadPool pool(std::thread::hardware_concurrency()); // ´´½¨Ò»¸öÏß³Ì³Ø£¬Ê¹ÓÃCPUºËĞÄÊıÁ¿
-
-    double simage = 0;
-    double time = 0;
-    double shanchu = 0;
-
-    while (iDisplayFrames--) {
-        auto s = std::chrono::high_resolution_clock::now();
-
-        std::future<void> get_image_future = std::async(std::launch::async, [&]() {
-            if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS) {
-                CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
-                cv::Mat image(
-                    cvSize(sFrameInfo.iWidth, sFrameInfo.iHeight),
-                    sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
-                    g_pRgbBuffer);
-                if (!image.empty()) {
-                    std::lock_guard<std::mutex> lock(queueMutex);
-                    taskQueue.push(image);
+                    // å¦‚æœä»»åŠ¡æ˜¯å¼‚æ­¥çš„ï¼Œå®Œæˆåé€šçŸ¥
+                    if (taskPromise) {
+                        taskPromise->set_value();
+                    }
                 }
-                simage += 1;
-                CameraReleaseImageBuffer(hCamera, pbyBuffer);
-            }
             });
-
-        // µÈ´ıÍ¼Ïñ»ñÈ¡Íê³É
-        get_image_future.wait();
-
-        auto e = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> diff = e - s;
-        time += diff.count();
-        std::cout << "diff.count():" << diff.count() << std::endl;
-
-        // ½«ÍÆÀíÈÎÎñÌá½»¸øÏß³Ì³Ø
-        pool.enqueue([&inference, &Ainference] {
-            // ´Ó¶ÓÁĞÖĞ»ñÈ¡Í¼Ïñ½øĞĞÍÆÀí
-            std::unique_lock<std::mutex> lock(queueMutex);
-            if (!taskQueue.empty()) {
-                cv::Mat frame = taskQueue.front();
-                taskQueue.pop();
-                lock.unlock();
-
-                // ½øĞĞÍÆÀí
-                inference.Pose_Run_async_Inference(frame);
-                Ainference.Pose_Run_async_Inference(frame);
-            }
-            });
-
-        std::cout << "Ïà»úÖ¡:" << simage / time * 1000 << std::endl;
-        std::cout << "ÍÆÀíÖ¡:" << shanchu / time * 1000 << std::endl;
+        }
     }
 
-    // Í£Ö¹ËùÓĞÏß³Ì
-    stopThreads = true;
-    queueCV.notify_all();
+    // æäº¤å¼‚æ­¥ä»»åŠ¡
+    template <class F>
+    std::shared_ptr<std::promise<void>> enqueue(F&& f) {
+        auto taskPromise = std::make_shared<std::promise<void>>();
+        auto task = [f, taskPromise] {
+            f();
+            taskPromise->set_value();  // ä»»åŠ¡å®Œæˆæ—¶è®¾ç½®å€¼
+        };
 
-    CameraUnInit(hCamera);
-    free(g_pRgbBuffer);
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            tasks.emplace(std::move(task), taskPromise);
+        }
+        condition.notify_one();  // é€šçŸ¥çº¿ç¨‹æ± æœ‰æ–°ä»»åŠ¡
+        return taskPromise;
+    }
+
+    ~ThreadPool() {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            stop = true;
+        }
+        condition.notify_all();  // é€šçŸ¥æ‰€æœ‰çº¿ç¨‹åœæ­¢
+        for (std::thread& worker : workers) {
+            worker.join();  // ç­‰å¾…æ‰€æœ‰çº¿ç¨‹å®Œæˆ
+        }
+    }
+
+private:
+    std::vector<std::thread> workers;
+    std::queue<std::pair<std::function<void()>, std::shared_ptr<std::promise<void>>>> tasks;
+    std::mutex queueMutex;
+    std::condition_variable condition;
+    std::atomic<bool> stop;
+};
+
+void print_hello(int id) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));  // æ¨¡æ‹Ÿå¼‚æ­¥ä»»åŠ¡
+    std::cout << "Hello from thread " << id << std::endl;
+}
+
+int main() {
+    ThreadPool pool(3);  // åˆ›å»ºçº¿ç¨‹æ± ï¼Œæœ€å¤§çº¿ç¨‹æ•°ä¸º 3
+
+    // æäº¤ 5 ä¸ªå¼‚æ­¥ä»»åŠ¡
+    std::vector<std::shared_ptr<std::promise<void>>> promises;
+    for (int i = 0; i < 5; ++i) {
+        promises.push_back(pool.enqueue([i] { print_hello(i); }));
+    }
+
+    // ç­‰å¾…æ‰€æœ‰ä»»åŠ¡å®Œæˆ
+    for (auto& promise : promises) {
+        promise->get_future().get();  // ç­‰å¾…å¼‚æ­¥ä»»åŠ¡å®Œæˆ
+    }
 
     return 0;
 }
