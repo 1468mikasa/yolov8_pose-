@@ -33,7 +33,8 @@ class Inference {
  double Pose_Run_time=0;
 double Pose_Run_img=0;
  double huamianshu=0;
-	int flage=1;
+//	int flage=1;
+	std::vector<int> flage;
 	int flage_=1;
 	int flage__=1;
 	int flage___=1;
@@ -46,14 +47,14 @@ double Pose_Run_img=0;
 
 	void RunInference(cv::Mat &frame);
 	void Pose_RunInference(cv::Mat &frame);
-	void Pose_Run_async_Inference(cv::Mat &frame);
+	void Pose_Run_async_Inference(cv::Mat &frame,int i);
  private:
 	void InitializeModel(const std::string &model_path);
 
 
-	void Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request);//yu
+	void Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request ,int i);//yu
 	//void Pose_PostProcessing(cv::Mat &frame);
-	void Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request);//hou
+	void Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request ,int i);//hou
 	
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);
@@ -79,6 +80,9 @@ double Pose_Run_img=0;
 	std::vector<std::string> classes_ {
 		"BG", "RG", 
 	}; 
+
+private:
+    mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
 		/*std::vector<std::string> classes_ {
 		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", 
 		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", 

@@ -129,30 +129,6 @@ detect/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/build
 .PHONY : detect/fast
 
-chatGPT.o: chatGPT.cc.o
-.PHONY : chatGPT.o
-
-# target to build an object file
-chatGPT.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/chatGPT.cc.o
-.PHONY : chatGPT.cc.o
-
-chatGPT.i: chatGPT.cc.i
-.PHONY : chatGPT.i
-
-# target to preprocess a source file
-chatGPT.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/chatGPT.cc.i
-.PHONY : chatGPT.cc.i
-
-chatGPT.s: chatGPT.cc.s
-.PHONY : chatGPT.s
-
-# target to generate assembly for a file
-chatGPT.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/chatGPT.cc.s
-.PHONY : chatGPT.cc.s
-
 inference.o: inference.cc.o
 .PHONY : inference.o
 
@@ -177,6 +153,30 @@ inference.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/inference.cc.s
 .PHONY : inference.cc.s
 
+main.o: main.cc.o
+.PHONY : main.o
+
+# target to build an object file
+main.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.o
+.PHONY : main.cc.o
+
+main.i: main.cc.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.i
+.PHONY : main.cc.i
+
+main.s: main.cc.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.s
+.PHONY : main.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -186,12 +186,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... detect"
-	@echo "... chatGPT.o"
-	@echo "... chatGPT.i"
-	@echo "... chatGPT.s"
 	@echo "... inference.o"
 	@echo "... inference.i"
 	@echo "... inference.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

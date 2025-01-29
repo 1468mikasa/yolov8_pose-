@@ -349,6 +349,11 @@ CMakeFiles/detect.dir/main.cc.o: /home/auto/Desktop/yolov8_pose-/main.cc \
  /usr/include/c++/11/iomanip /usr/include/c++/11/bits/quoted_string.h \
  /opt/intel/openvino_2024.6.0/runtime/include/openvino/runtime/remote_context.hpp \
  /opt/intel/openvino_2024.6.0/runtime/include/openvino/runtime/remote_tensor.hpp \
+ /home/auto/Desktop/yolov8_pose-/tongbu.h /usr/include/c++/11/thread \
+ /usr/include/c++/11/bits/std_thread.h \
+ /usr/include/c++/11/bits/this_thread_sleep.h /usr/include/c++/11/queue \
+ /usr/include/c++/11/bits/stl_queue.h \
+ /usr/include/c++/11/condition_variable \
  /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraApi.h \
  /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraDefine.h \
  /home/auto/Desktop/yolov8_pose-/linuxSDK_V2.1.0.41/include/CameraStatus.h \
@@ -361,6 +366,4 @@ CMakeFiles/detect.dir/main.cc.o: /home/auto/Desktop/yolov8_pose-/main.cc \
  /usr/include/opencv4/opencv2/highgui.hpp \
  /usr/include/opencv4/opencv2/imgcodecs.hpp \
  /usr/include/opencv4/opencv2/videoio.hpp /usr/include/c++/11/future \
- /usr/include/c++/11/condition_variable \
- /usr/include/c++/11/bits/atomic_futex.h \
- /usr/include/c++/11/bits/std_thread.h
+ /usr/include/c++/11/bits/atomic_futex.h

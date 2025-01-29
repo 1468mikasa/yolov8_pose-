@@ -1,4 +1,5 @@
 #include "inference.h"
+#include "tongbu.h"
 #include "CameraApi.h" // 相机SDK的API头文件
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/core/core.hpp"
@@ -22,7 +23,7 @@ int main(int argc, char **argv)
 	tSdkCameraCapbility tCapability; // 设备描述信息
 	tSdkFrameHead sFrameInfo;
 	BYTE *pbyBuffer;
-	int iDisplayFrames = 10000;
+	int iDisplayFrames = 100000;
 	IplImage *iplImage = NULL;
 	int channel = 3;
 
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 	*/
 
 	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 2500); 
+	CameraSetExposureTime(hCamera, 5000); 
 
 	CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
 	//CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
@@ -101,17 +102,22 @@ int main(int argc, char **argv)
 		double time_ = 0;
 	double result = 0;
 	double shanchu=0;
-	std::vector<cv::Mat> images;
+
+	std::deque<cv::Mat> images;
+std::mutex images_mutex;
+const size_t MAX_BUFFER_SIZE = 10;
+
 
 	std::vector<cv::Mat> bufferA;
 std::vector<cv::Mat> bufferB;
 std::atomic<bool> processing_bufferA(false);
 std::atomic<bool> processing_bufferB(false);
 
-
+    ThreadPool pool(8);  // 创建一个包含 4 个线程的线程池
 
 	while (iDisplayFrames--)
 	{
+		
 
 	auto s = std::chrono::high_resolution_clock::now();
 
@@ -123,7 +129,15 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
             sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
             g_pRgbBuffer);
         if (!image.empty()) {
-            images.push_back(image);
+
+			    
+    if (images.size() >= MAX_BUFFER_SIZE) {
+        images.pop_front();
+    }
+    images.push_back(image);
+            
+			//cv::imshow("xshpw",image);cv::waitKey(1);
+			
 			//std::cout<<"bao_cun"<<simage<<".jpg"<<std::endl;
 			//cv::imwrite("/home/auto/Desktop/yolov8_pose-/out/" + std::to_string(simage) + ".jpg",image);
         }
@@ -135,17 +149,21 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 		 
 	
 
-
-		if (images.size() > 1)
-		{
-		inference.Pose_Run_async_Inference(images[images.size()-2]);
-		Ainference.Pose_Run_async_Inference(images[images.size()-1]);
-			//Binference.Pose_Run_async_Inference(images[2]);
-		}
+get_image_future.wait(); 
+		 
+    if (images.size()>8) {
+		for(int i=0;i<2;i++)
+        pool.enqueue([&inference, &images,&Ainference,i] { 
+            inference.Pose_Run_async_Inference(images[2*i],2*i); // 处理最新帧
+			Ainference.Pose_Run_async_Inference(images[2*i+1],2*i+1);
+        });
+		
+    }
 
 		
+		
 
-		get_image_future.wait(); 
+	
 
 		auto e = std::chrono::high_resolution_clock::now();
 
@@ -157,7 +175,7 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 		std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		std::cout << "time" << time << std::endl;//33ms
 		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << shanchu/time*1000 << std::endl;
+		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 << std::endl;
 
 		
 	}
