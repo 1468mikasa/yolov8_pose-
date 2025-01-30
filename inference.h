@@ -34,10 +34,10 @@ class Inference {
 double Pose_Run_img=0;
  double huamianshu=0;
 //	int flage=1;
-	std::vector<int> flage;
-	int flage_=1;
-	int flage__=1;
-	int flage___=1;
+bool RUN=false;
+
+//mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
+
 	ProcessState run=ProcessState::Ainference_request_RUN;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
@@ -47,7 +47,7 @@ double Pose_Run_img=0;
 
 	void RunInference(cv::Mat &frame);
 	void Pose_RunInference(cv::Mat &frame);
-	void Pose_Run_async_Inference(cv::Mat &frame,int i);
+	void Pose_Run_async_Inference(cv::Mat &frame);
  private:
 	void InitializeModel(const std::string &model_path);
 
@@ -69,6 +69,9 @@ double Pose_Run_img=0;
 	ov::InferRequest Binference_request_;  // OpenVINO inference request
 	ov::InferRequest Cinference_request_;  // OpenVINO inference request
 	ov::InferRequest Dinference_request_;  // OpenVINO inference request
+
+std::vector<ov::InferRequest>inference_requests_;
+std::vector<bool>flages;
 
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 
