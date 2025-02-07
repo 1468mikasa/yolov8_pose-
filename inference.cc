@@ -28,12 +28,23 @@ namespace yolo
 		model_NMS_threshold_ = model_NMS_threshold;
 		InitializeModel(model_path);
 	}
+	
+		// Constructor to initialize the model with specified input shape
+	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver_)
+	{
+		
+		driver=driver_;
+		model_input_shape_ = model_input_shape;
+		model_confidence_threshold_ = model_confidence_threshold;
+		model_NMS_threshold_ = model_NMS_threshold;
+		InitializeModel(model_path);
+	}
 
 	void Inference::InitializeModel(const std::string &model_path)
 	{
 		ov::Core core;													// OpenVINO core object
 		std::shared_ptr<ov::Model> model = core.read_model(model_path); // Read the model from file
-
+		
 		// If the model has dynamic shapes, reshape it to the specified input shape
 		if (model->is_dynamic())
 		{
@@ -50,13 +61,16 @@ namespace yolo
 
 		// Compile the model for inference
 		// compiled_model_ = core.compile_model(model, "AUTO");
-		compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT));
+		compiled_model_ = core.compile_model(model, driver,
+		 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT)
+		//ov::hint::model_priority(ov::hint::Priority::HIGH)
+		 );
 //compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 		//Ainference_request_ = compiled_model_.create_infer_request(); 
 		//Binference_request_ = compiled_model_.create_infer_request();		 
 		    // 初始化多个推理请求
 
-    const int num_requests = 4;  // 根据硬件调整数量
+    const int num_requests = 12;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
 
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());
@@ -86,13 +100,26 @@ namespace yolo
 		int request_id = -1;
 
 std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
+int count=0;
+    for (int i = 0; i < flages.size(); i++) {
+        std::cout << i << " == " << flages[i] << "\t";
+        count++;
+
+        if (count == 4) {
+            std::cout << std::endl;
+            count = 0;
+        }
+    }
 
 		for(int i=0;i<flages.size();i++)
 		{
 			if(flages[i])
 			{
+				std::cout<<i<<"____"<<std::endl;
 
 				request_id=i;
+				flages[request_id]=false;
+
 				auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			
 					// 使用 std::async 启动异步任务
@@ -102,17 +129,17 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 					Preprocessing(*frame_ptr, inference_request_ref.get(),request_id);
 					},
 					std::ref(inference_requests_[request_id]));  
-			flages[request_id]=false;
-		
 
 			break;
 			}
 		}
 
+
+
 		if (request_id == -1) {
 		RUN=true;
         // 无可用请求，跳过或等待
-		std::cout<<"!@@Runing__=="<<std::endl;
+		std::cout<<"_____________Runing__"<<std::endl;
         return;
    		 }
 
@@ -187,7 +214,7 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 		//std::cout << "The  Pose_PostProcessing成功  " << std::endl;
 		// auto frame_copy = frame.clone();  // 创建一个副本
 		const float *detections = inference_request.get_output_tensor().data<const float>();//赶紧用掉inference_request解锁
-		std::cout << "Pose_PostProcessing进入" << std::endl;
+		//std::cout << "Pose_PostProcessing进入" << std::endl;
 
 
 

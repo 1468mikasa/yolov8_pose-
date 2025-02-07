@@ -13,6 +13,35 @@ using namespace cv;
 unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <iostream>
 #include <opencv2/highgui.hpp>
+#include <time.h>
+
+class PeriodicPrinter {
+public:
+    PeriodicPrinter() : running(true) {
+        // 启动打印线程
+        printer_thread = std::thread(&PeriodicPrinter::print, this);
+    }
+
+    ~PeriodicPrinter() {
+        // 停止打印线程
+        running = false;
+        if (printer_thread.joinable()) {
+            printer_thread.join();
+        }
+    }
+
+private:
+    void print() {
+        while (running) {
+            std::cout << "---------------———100ms———------------" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+    std::thread printer_thread;
+    std::atomic<bool> running;
+};
+
 
 int main(int argc, char **argv)
 {
@@ -90,11 +119,10 @@ int main(int argc, char **argv)
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
 
+	std::string driver="CPU";
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-
-	//yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
 	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
 	double simage = 0;
@@ -103,20 +131,27 @@ int main(int argc, char **argv)
 	double result = 0;
 	double shanchu=0;
 
-	std::deque<cv::Mat> images;
 std::mutex images_mutex;
-const size_t MAX_BUFFER_SIZE = 10;
+
+const size_t MAX_BUFFER_SIZE = 8;
+
+    // 创建一个包含5个Mat对象的deque
+    std::deque<cv::Mat> matDeque;
 
 
-	std::vector<cv::Mat> bufferA;
-std::vector<cv::Mat> bufferB;
+    ThreadPool pool(MAX_BUFFER_SIZE);  // 创建一个包含 4 个线程的线程池
 
+	
 
-    ThreadPool pool(6);  // 创建一个包含 4 个线程的线程池
+		// PeriodicPrinter printer;
+		// std::this_thread::sleep_for(std::chrono::seconds(1));
+    
 
 	while (true)
 	{
-		
+
+		//PeriodicPrinter printer;
+	 	//std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	auto s = std::chrono::high_resolution_clock::now();
 
@@ -128,28 +163,44 @@ std::vector<cv::Mat> bufferB;
             sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
             g_pRgbBuffer);
         if (!image.empty()) {
-				std::cout<<"!image.empty()"<<std::endl;
-				auto frame_ptr = std::make_shared<cv::Mat>(image);
+				matDeque.push_back(image);
+				if(matDeque.size()>MAX_BUFFER_SIZE)
+				{
+					matDeque.pop_front();
+				}
 
-	 			pool.enqueue([&inference, frame_ptr] { 
+if(matDeque.size()>7)
+{
+for(int i=0;i<4;i++)
+{
+		auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i]);
 
-		
-
-			
+	 	 
 		if (inference.RUN==false)
 			{
+				std::cout<<"chuli_ID="<<i<<std::endl;
+pool.enqueue([&inference, frame_ptr] {
 			inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-			std::cout<<"inference.RUN"<<inference.RUN<<std::endl;
-
+			 });
+			 continue;
 			}
-		else if (inference.RUN)
+			else if (Ainference.RUN==false)
+			{
+				std::cout<<"chuli_ID="<<i<<std::endl;
+pool.enqueue([&Ainference, frame_ptr] {
+			Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+			 });
+			 continue;
+			}
+		else if (inference.RUN&&Ainference.RUN)
 			{
 				std::cout<<"all_RUN"<<std::endl;
 			}
 
-	
-        });
-            
+		
+       
+}
+}
         }
 		simage+=1;
         CameraReleaseImageBuffer(hCamera, pbyBuffer);
@@ -168,7 +219,7 @@ std::vector<cv::Mat> bufferB;
 		//std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		//std::cout << "time" << time << std::endl;//33ms
 		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << (inference.huamianshu)/time*1000 << std::endl;
+		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 << std::endl;
 
 		
 	}

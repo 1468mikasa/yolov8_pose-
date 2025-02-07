@@ -17,7 +17,6 @@ add_executable(detect
 #kimi.cc
 #chatGPT.cc
     inference.cc
-    
 
     #onnx2openvino.cpp
 )

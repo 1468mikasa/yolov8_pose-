@@ -37,6 +37,7 @@ double Pose_Run_img=0;
 bool RUN=false;
 
 //mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
+std::string driver = "BATCH:GPU(1)";
 
 	ProcessState run=ProcessState::Ainference_request_RUN;
 	Inference() {}
@@ -44,6 +45,9 @@ bool RUN=false;
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
 	// Constructor to initialize the model with specified input shape
 	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold);
+
+	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver);
+
 
 	void RunInference(cv::Mat &frame);
 	void Pose_RunInference(cv::Mat &frame);
