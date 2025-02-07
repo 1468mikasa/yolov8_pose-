@@ -92,18 +92,36 @@ namespace yolo
 		Pose_Run_img+=1;
 
 		}
+		/*
 		else
 		{
-		std::cout << "runing_time" << std::endl;//6.92671
+	
+			if (flage_ == 1)
+			{
+			auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
+			// 启动异步推理
+        	// 使用 std::async 启动异步任务
+			std::future<void> result = std::async(std::launch::async,
+    		[this, frame_ptr](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
+        	// 使用 frame_ptr 和引用传递的 inference_request_
+        	Preprocessing(*frame_ptr, inference_request_ref.get());
+    		},
+    		std::ref(Binference_request_));  
 
-		}
+			flage_ = 0;
+
+			}
+			else{
+					std::cout << "runing_time" << std::endl;//6.92671
+			}
+		}*/
 
 
 		auto e = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> diff = e - s;
 		Pose_Run_time+=diff.count();
 
-		std::cout << "Pose_Run_time="<<Pose_Run_time/Pose_Run_img << std::endl;
+		//std::cout << "Pose_Run_time="<<Pose_Run_time/Pose_Run_img << std::endl;
 		/*
 		else{
 	
@@ -195,7 +213,10 @@ namespace yolo
 		{
 			std::cout<<"A"<<std::endl;
 			flage = 1; 
+			        cv::imshow("show",frame);
+        cv::waitKey(1);
 		}
+
 		/*
 		if (&inference_request == &Binference_request_)
 		{
@@ -275,17 +296,6 @@ namespace yolo
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
-		if (NMS_result.size() == 0)
-		{
-			cv::imshow("Ashow", frame);
-
-			cv::waitKey(1);
-		}
-		else
-		{
-
-			std::cout << "识别成功  " << std::endl;
-		}
 		huamianshu += 1;
 		//std::cout<<"后处理画面数："<<huamianshu<<std::endl;
 		// Collect final detections after NMS
@@ -302,7 +312,7 @@ namespace yolo
 			Pose_DrawDetectedObject(frame, result);
 
 
-		}
+		} 
 
 		//std::cout << "Pose_PostProcessing完成" << std::endl;
 	}
@@ -382,11 +392,7 @@ namespace yolo
 		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
 
-		// cv::imshow("show", frame);
-		// auto frame_copy = frame.clone();  // 创建一个副本
-		cv::imshow("Ashow", frame);
-
-		// std::cout << "显示成功  " << std::endl;
+		cv::imshow("show", frame);
 		cv::waitKey(1);
 	}
 

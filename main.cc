@@ -67,6 +67,12 @@ int main(int argc, char **argv)
 		 本例程只是为了演示如何将SDK中获取的图像，转成OpenCV的图像格式,以便调用OpenCV的图像处理函数进行后续开发
 	*/
 
+	CameraSetAeState(hCamera, false);
+	CameraSetExposureTime(hCamera, 2500); 
+
+	CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
+	//CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
+
 	if (tCapability.sIspCapacity.bMonoSensor)
 	{
 		channel = 1;
@@ -107,7 +113,7 @@ std::atomic<bool> processing_bufferB(false);
 	while (iDisplayFrames--)
 	{
 
-		auto s = std::chrono::high_resolution_clock::now();
+	auto s = std::chrono::high_resolution_clock::now();
 
 std::future<void> get_image_future = std::async(std::launch::async, [&]() {
     if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS) {
@@ -118,6 +124,8 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
             g_pRgbBuffer);
         if (!image.empty()) {
             images.push_back(image);
+			//std::cout<<"bao_cun"<<simage<<".jpg"<<std::endl;
+			//cv::imwrite("/home/auto/Desktop/yolov8_pose-/out/" + std::to_string(simage) + ".jpg",image);
         }
 		simage+=1;
         CameraReleaseImageBuffer(hCamera, pbyBuffer);
@@ -125,34 +133,19 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 });
 
 		 
-		
-		if(inference.huamianshu>0&& images.size() >inference.huamianshu)
-			{
-			shanchu+=inference.huamianshu;
-			images.erase(images.begin(), images.begin() + inference.huamianshu);
-						 inference.huamianshu=0;
-		std::cout << "0_shanchu=="<<shanchu<< std::endl;
-			}
-		if(Ainference.huamianshu>0 && images.size() >Ainference.huamianshu)
-			{
-			shanchu+=Ainference.huamianshu;
-			images.erase(images.begin(), images.begin() + Ainference.huamianshu);
-						 Ainference.huamianshu=0;
-		std::cout << "A_shanchu=="<<shanchu<< std::endl;
-			}
-				
+	
+
 
 		if (images.size() > 1)
 		{
-
-
-			inference.Pose_Run_async_Inference(images[0]);		
-			Ainference.Pose_Run_async_Inference(images[1]);
-			//7ms
-
+		inference.Pose_Run_async_Inference(images[images.size()-2]);
+		Ainference.Pose_Run_async_Inference(images[images.size()-1]);
+			//Binference.Pose_Run_async_Inference(images[2]);
 		}
 
-		//get_image_future.wait(); 
+		
+
+		get_image_future.wait(); 
 
 		auto e = std::chrono::high_resolution_clock::now();
 
@@ -162,7 +155,7 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
 		std::chrono::duration<double, std::milli> diff = e - s;
 		time += diff.count();
 		std::cout << "diff.count():" << diff.count() << std::endl;//33ms
-
+		std::cout << "time" << time << std::endl;//33ms
 		std::cout << "相机帧:" << simage/time*1000 << std::endl;
 		std::cout << "推理帧:" << shanchu/time*1000 << std::endl;
 
