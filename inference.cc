@@ -62,15 +62,15 @@ namespace yolo
 		// Compile the model for inference
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, driver,
-		 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT)
-		//ov::hint::model_priority(ov::hint::Priority::HIGH)
+		 ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),//THROUGHPUT
+		ov::hint::model_priority(ov::hint::Priority::HIGH)
 		 );
 //compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 		//Ainference_request_ = compiled_model_.create_infer_request(); 
 		//Binference_request_ = compiled_model_.create_infer_request();		 
 		    // 初始化多个推理请求
 
-    const int num_requests = 12;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
+    const int num_requests = 2;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
 
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());

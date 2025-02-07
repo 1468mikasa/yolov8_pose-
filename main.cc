@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 	std::string driver="CPU";
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
 	double simage = 0;
@@ -168,43 +168,44 @@ const size_t MAX_BUFFER_SIZE = 8;
 				{
 					matDeque.pop_front();
 				}
+		}}
 
-if(matDeque.size()>7)
-{
-for(int i=0;i<4;i++)
-{
-		auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i]);
+	if(matDeque.size()>7)
+	{
+	for(int i=0;i<6;i++)
+	{
+			auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i]);
 
-	 	 
-		if (inference.RUN==false)
-			{
-				std::cout<<"chuli_ID="<<i<<std::endl;
-pool.enqueue([&inference, frame_ptr] {
-			inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-			 });
-			 continue;
-			}
-			else if (Ainference.RUN==false)
-			{
-				std::cout<<"chuli_ID="<<i<<std::endl;
-pool.enqueue([&Ainference, frame_ptr] {
-			Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-			 });
-			 continue;
-			}
-		else if (inference.RUN&&Ainference.RUN)
-			{
-				std::cout<<"all_RUN"<<std::endl;
-			}
+			
+			if (inference.RUN==false)
+				{
+					std::cout<<"chuli_ID="<<i<<std::endl;
+	pool.enqueue([&inference, frame_ptr] {
+				inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+				});
+				continue;
+				}
+				else if (Ainference.RUN==false)
+				{
+					std::cout<<"chuli_ID="<<i<<std::endl;
+	pool.enqueue([&Ainference, frame_ptr] {
+				Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+				});
+				continue;
+				}
+			else if (inference.RUN&&Ainference.RUN)
+				{
+					std::cout<<"all_RUN"<<std::endl;
+				}
 
+			
 		
-       
-}
-}
-        }
+	}
+	}
+        
 		simage+=1;
         CameraReleaseImageBuffer(hCamera, pbyBuffer);
-    }
+    
 
 
 		 
