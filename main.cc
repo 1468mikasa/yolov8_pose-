@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	//yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 
 	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
@@ -120,7 +120,7 @@ std::vector<cv::Mat> bufferB;
 
 	auto s = std::chrono::high_resolution_clock::now();
 
-std::future<void> get_image_future = std::async(std::launch::async, [&]() {
+
     if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS) {
         CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
         cv::Mat image(
@@ -128,67 +128,39 @@ std::future<void> get_image_future = std::async(std::launch::async, [&]() {
             sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
             g_pRgbBuffer);
         if (!image.empty()) {
-/*
-			    
-    if (images.size() >= MAX_BUFFER_SIZE) {
-        images.pop_front();
-    }
-    images.push_back(image);*/
-auto frame_ptr = std::make_shared<cv::Mat>(image);
+				std::cout<<"!image.empty()"<<std::endl;
+				auto frame_ptr = std::make_shared<cv::Mat>(image);
 
-	 pool.enqueue([&inference,&Ainference, frame_ptr] { 
+	 			pool.enqueue([&inference, frame_ptr] { 
 
+		
 
-			inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-			std::cout<<"inference_RUN"<<std::endl;
 			
-		if (!inference.RUN)
+		if (inference.RUN==false)
 			{
-			Ainference.Pose_Run_async_Inference(*frame_ptr); 
-			std::cout<<"Ainference_RUN"<<std::endl;
+			inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+			std::cout<<"inference.RUN"<<inference.RUN<<std::endl;
+
 			}
-		else if (!Ainference.RUN)
+		else if (inference.RUN)
 			{
 				std::cout<<"all_RUN"<<std::endl;
 			}
 
-		
-
-			//Ainference.Pose_Run_async_Inference(images[2*i+1],2*i+1);
+	
         });
             
-			//cv::imshow("xshpw",image);cv::waitKey(1);
-			
-			//std::cout<<"bao_cun"<<simage<<".jpg"<<std::endl;
-			//cv::imwrite("/home/auto/Desktop/yolov8_pose-/out/" + std::to_string(simage) + ".jpg",image);
         }
 		simage+=1;
         CameraReleaseImageBuffer(hCamera, pbyBuffer);
     }
-});
+
 
 		 
 	
 
-get_image_future.wait(); 
-	/*
-    if (images.size()>8) {
-		for(int i=0;i<1;i++)
-        pool.enqueue([&inference, &images,i] { 
-            inference.Pose_Run_async_Inference(images[i],i); // 处理最新帧
-			//Ainference.Pose_Run_async_Inference(images[2*i+1],2*i+1);
-        });
-		
-    }
-
-		*/
-	 
-
-	
-
 		auto e = std::chrono::high_resolution_clock::now();
 
-		//std::cout << "images.size()=="<<images.size()<< std::endl;
 
 	
 		std::chrono::duration<double, std::milli> diff = e - s;
@@ -196,7 +168,7 @@ get_image_future.wait();
 		//std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		//std::cout << "time" << time << std::endl;//33ms
 		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 << std::endl;
+		std::cout << "推理帧:" << (inference.huamianshu)/time*1000 << std::endl;
 
 		
 	}

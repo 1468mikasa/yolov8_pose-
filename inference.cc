@@ -82,7 +82,7 @@ namespace yolo
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-		RUN=false;
+		
 		int request_id = -1;
 
 std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
@@ -91,6 +91,7 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 		{
 			if(flages[i])
 			{
+
 				request_id=i;
 				auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
 			
@@ -102,14 +103,14 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 					},
 					std::ref(inference_requests_[request_id]));  
 			flages[request_id]=false;
-			RUN=true;
-			//std::cout<<"RUN---flages=="<<i<<std::endl;
+		
+
 			break;
 			}
 		}
 
 		if (request_id == -1) {
-			//RUN=true;
+		RUN=true;
         // 无可用请求，跳过或等待
 		std::cout<<"!@@Runing__=="<<std::endl;
         return;
@@ -269,7 +270,7 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 
 std::lock_guard<std::mutex> lock(flage_mutex); 
 				flages[i]=true;
-		//RUN=false;
+		RUN=false;
 		huamianshu += 1;
 	}
 
