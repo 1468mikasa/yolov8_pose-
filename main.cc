@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
 
-	std::string driver="CPU";
+	//std::string driver="CPU";
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
@@ -172,14 +172,17 @@ const size_t MAX_BUFFER_SIZE = 8;
 
 	if(matDeque.size()>7)
 	{
-	for(int i=0;i<6;i++)
+			auto s = std::chrono::high_resolution_clock::now();
+	for(int i=0;i<2;i++)
 	{
-			auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i]);
+			
 
 			
 			if (inference.RUN==false)
 				{
-					std::cout<<"chuli_ID="<<i<<std::endl;
+auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
+
+				std::cout<<"chuli_ID="<<i<<std::endl;
 	pool.enqueue([&inference, frame_ptr] {
 				inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
 				});
@@ -187,7 +190,9 @@ const size_t MAX_BUFFER_SIZE = 8;
 				}
 				else if (Ainference.RUN==false)
 				{
-					std::cout<<"chuli_ID="<<i<<std::endl;
+auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
+
+					std::cout<<"Achuli_ID="<<i<<std::endl;
 	pool.enqueue([&Ainference, frame_ptr] {
 				Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
 				});
@@ -196,11 +201,17 @@ const size_t MAX_BUFFER_SIZE = 8;
 			else if (inference.RUN&&Ainference.RUN)
 				{
 					std::cout<<"all_RUN"<<std::endl;
+					continue;
 				}
 
-			
-		
+
 	}
+						auto e = std::chrono::high_resolution_clock::now();
+
+
+	
+		std::chrono::duration<double, std::milli> diff = e - s;
+		std::cout << "diff.count():" << diff.count() << std::endl;
 	}
         
 		simage+=1;
@@ -220,7 +231,7 @@ const size_t MAX_BUFFER_SIZE = 8;
 		//std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		//std::cout << "time" << time << std::endl;//33ms
 		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 << std::endl;
+		std::cout << "推理帧:" << inference.huamianshu/time*1000 << std::endl;
 
 		
 	}

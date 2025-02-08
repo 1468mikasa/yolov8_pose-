@@ -70,7 +70,7 @@ namespace yolo
 		//Binference_request_ = compiled_model_.create_infer_request();		 
 		    // 初始化多个推理请求
 
-    const int num_requests = 2;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
+    const int num_requests = 1;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
 
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());
