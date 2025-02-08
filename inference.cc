@@ -47,7 +47,7 @@ namespace yolo
 
 		// Compile the model for inference
 		// compiled_model_ = core.compile_model(model, "AUTO");
-		compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
+		compiled_model_ = core.compile_model(model, "CPU", ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT));//THROUGHPUT LATENCY
 
 		inference_request_ = compiled_model_.create_infer_request(); //
 
@@ -87,11 +87,43 @@ namespace yolo
 
 		Pose_PostProcessing(frame); // Postprocess the inference results
 	}
+	
+/* 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
+{
+    // 创建新的 InferRequest 以避免线程竞争
+    auto new_request = compiled_model_.create_infer_request();
+
+    // 设置新的 InferRequest
+    auto frame_ptr = std::make_shared<cv::Mat>(frame.clone());
+    new_request.set_callback([this, frame_ptr](std::exception_ptr ex_ptr)
+                            {
+        if (ex_ptr) {
+            try {
+                std::rethrow_exception(ex_ptr);
+            } catch (const std::exception& e) {
+                std::cerr << "Error during inference: " << e.what() << std::endl;
+            }
+        }
+
+        Pose_PostProcessing(*frame_ptr);
+    });
+
+    // Preprocessing and start async inference using new_request
+    Preprocessing(frame.clone());
+    new_request.set_input_tensor(inference_request_.get_input_tensor());
+    new_request.start_async();
+	new_request.wait();
+} */
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
 		if (flage == 1)
 		{
+		std::cout << "flage == 1" << std::endl;
+
+			flage = 0;
+			RUN=true;
+
 		// 使用 lambda 捕获 frame，并处理推理结果
 		auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
 
@@ -109,7 +141,7 @@ namespace yolo
         // 调用 Pose_PostProcessing 并传递 frame
         Pose_PostProcessing(*frame_ptr);
 		//std::cerr << "set_callback" << std::endl;
-		flage=1;
+		
 		
 		 });
 
@@ -117,9 +149,15 @@ namespace yolo
 		//std::cerr << "Starting async inference..." << std::endl;
 
 
-			Preprocessing(frame);			  // Preprocess the input frame
-			inference_request_.start_async(); // 启动新的推理任务
-			flage = 0;
+			Preprocessing(frame.clone());			  // Preprocess the input frame
+			inference_request_.start_async(); // 启动新的推理任
+			
+
+			//inference_request_.wait();
+		}
+		else
+		{
+			return ;
 		}
 	}
 
@@ -206,7 +244,9 @@ namespace yolo
 	{
 		std::cout << "The  Pose_PostProcessing成功  " << std::endl;
 		cv::imshow("show", frame);
+		cv::waitKey(1);
 		std::cout << "显示成功  " << std::endl;
+		huamianshu++;
 
 
 		std::vector<int> class_list;
@@ -216,6 +256,9 @@ namespace yolo
 		// Get the output tensor from the inference request
 		const float *detections = inference_request_.get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
+
+			RUN=false;
+			flage=1;
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
 		int labels_size = 2;
@@ -355,8 +398,8 @@ namespace yolo
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
 
 
-		cv::imshow("show", frame);
-		cv::waitKey(1);
+		//cv::imshow("show", frame);
+		//cv::waitKey(1);
 
 	}
 

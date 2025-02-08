@@ -850,8 +850,17 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/opencv4/opencv2/highgui/highgui.hpp \
   /usr/include/opencv4/opencv2/highgui.hpp \
   /usr/include/opencv4/opencv2/imgcodecs.hpp \
-  /usr/include/opencv4/opencv2/videoio.hpp
+  /usr/include/opencv4/opencv2/videoio.hpp \
+  ../tongbu.h \
+  /usr/include/c++/11/thread \
+  /usr/include/c++/11/bits/std_thread.h \
+  /usr/include/c++/11/bits/this_thread_sleep.h \
+  /usr/include/c++/11/queue \
+  /usr/include/c++/11/bits/stl_queue.h \
+  /usr/include/c++/11/condition_variable
 
+
+../tongbu.h:
 
 /usr/include/opencv4/opencv2/highgui/highgui.hpp:
 
@@ -1042,6 +1051,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/bits/parse_numbers.h:
 
 /usr/include/c++/11/ctime:
+
+/usr/include/c++/11/condition_variable:
 
 /usr/include/c++/11/thread:
 
@@ -1310,6 +1321,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
 /usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/c++/11/bits/stl_queue.h:
 
 /opt/intel/openvino_2024.6.0/runtime/include/openvino/core/preprocess/color_format.hpp:
 
@@ -1662,6 +1675,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/exception:
 
 /usr/include/c++/11/bits/nested_exception.h:
+
+/usr/include/c++/11/queue:
 
 /opt/intel/openvino_2024.6.0/runtime/include/openvino/runtime/profiling_info.hpp:
 

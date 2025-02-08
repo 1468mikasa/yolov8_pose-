@@ -11,6 +11,7 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <iostream>
 #include <opencv2/highgui.hpp>
 
+#include "tongbu.h"
 int main(int argc, char **argv)
 {
 	int iCameraCounts = 1;
@@ -56,8 +57,11 @@ int main(int argc, char **argv)
 	/*让SDK进入工作模式，开始接收来自相机发送的图像
 	数据。如果当前相机是触发模式，则需要接收到
 	触发帧以后才会更新图像。    */
+
 	CameraPlay(hCamera);
 
+			CameraSetAeState(hCamera, false);
+	CameraSetExposureTime(hCamera, 10000);
 	/*其他的相机参数设置
 	例如 CameraSetExposureTime   CameraGetExposureTime  设置/读取曝光时间
 		 CameraSetImageResolution  CameraGetImageResolution 设置/读取分辨率
@@ -83,13 +87,22 @@ int main(int argc, char **argv)
 
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
 	double result = 0;
-	while (iDisplayFrames--)
+
+	std::deque<cv::Mat> matDeque;
+
+	const size_t MAX_BUFFER_SIZE = 4;
+	ThreadPool pool(MAX_BUFFER_SIZE);
+	
+	while (true)
 	{
-		
+		auto s = std::chrono::high_resolution_clock::now();
+
 		if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS)
 		{
 			CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
@@ -105,19 +118,49 @@ int main(int argc, char **argv)
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
 			}
-	
-
-			inference.Pose_Run_async_Inference(image);
-			std::cerr << "输入！@Pose_Run_async_Inference" << std::endl;
+			simage++;
 			CameraReleaseImageBuffer(hCamera, pbyBuffer);
-
+			matDeque.push_back(image);
+			if (matDeque.size() > MAX_BUFFER_SIZE)
+			{
+				matDeque.pop_front();
+			}
 		}
 
+		if (matDeque.size() > 3)
+		{
+
+
+			auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0].clone());
+
+			pool.enqueue([&inference, frame_ptr]
+						 {
+							std::cout << "__inference__" << std::endl;
+							 inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+						 });
+
+			frame_ptr = std::make_shared<cv::Mat>(matDeque[1].clone());
+			
+			pool.enqueue([&Ainference, frame_ptr]
+						 {
+							 Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+						 });
+
+
+			
+		}
+
+		auto e = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> diff = e - s;
+		std::cout << diff.count() << std::endl;
+		time += diff.count();
+		std::cout << "摄像hz:	" << simage / time * 1000 << std::endl;
+		std::cout << "推理hz:	" << (inference.huamianshu) / time * 1000 << std::endl;
 	}
+		CameraUnInit(hCamera);
+		// 注意，现反初始化后再free
+		free(g_pRgbBuffer);
 
-	CameraUnInit(hCamera);
-	// 注意，现反初始化后再free
-	free(g_pRgbBuffer);
-
-	return 0;
-}
+		return 0;
+	}
+	

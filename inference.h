@@ -25,7 +25,10 @@ struct Detection {
 
 class Inference {
  public:
+ 
+ bool RUN=false;
 	int flage=1;
+	double huamianshu=0;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
