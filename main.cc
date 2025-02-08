@@ -119,11 +119,13 @@ int main(int argc, char **argv)
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
 
-	//std::string driver="CPU";
+	std::string driver="CPU";
+	int num_requests=1;
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver,num_requests);
+
+	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
 	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
@@ -173,7 +175,7 @@ const size_t MAX_BUFFER_SIZE = 8;
 	if(matDeque.size()>7)
 	{
 			auto s = std::chrono::high_resolution_clock::now();
-	for(int i=0;i<2;i++)
+	for(int i=0;i<7;i++)
 	{
 			
 
@@ -182,7 +184,7 @@ const size_t MAX_BUFFER_SIZE = 8;
 				{
 auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
 
-				std::cout<<"chuli_ID="<<i<<std::endl;
+				//std::cout<<"chuli_ID="<<i<<std::endl;
 	pool.enqueue([&inference, frame_ptr] {
 				inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
 				});
@@ -192,15 +194,25 @@ auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
 				{
 auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
 
-					std::cout<<"Achuli_ID="<<i<<std::endl;
+					//std::cout<<"Achuli_ID="<<i<<std::endl;
 	pool.enqueue([&Ainference, frame_ptr] {
 				Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
 				});
 				continue;
 				}
+/* 								else if (Binference.RUN==false)
+				{
+auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
+
+					//std::cout<<"Achuli_ID="<<i<<std::endl;
+	pool.enqueue([&Binference, frame_ptr] {
+				Binference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
+				});
+				continue;
+				} */
 			else if (inference.RUN&&Ainference.RUN)
 				{
-					std::cout<<"all_RUN"<<std::endl;
+					//std::cout<<"all_RUN"<<std::endl;
 					continue;
 				}
 
@@ -211,7 +223,7 @@ auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
 
 	
 		std::chrono::duration<double, std::milli> diff = e - s;
-		std::cout << "diff.count():" << diff.count() << std::endl;
+		//std::cout << "diff.count():" << diff.count() << std::endl;
 	}
         
 		simage+=1;
@@ -230,9 +242,19 @@ auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
 		time += diff.count();
 		//std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		//std::cout << "time" << time << std::endl;//33ms
-		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << inference.huamianshu/time*1000 << std::endl;
 
+		if(time>2500)
+		{
+		std::cout << "相机帧:" << simage/time*1000 << std::endl;
+		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 <<"\n"<<std::endl;
+			time=0;
+			Ainference.huamianshu=0;
+			//Binference.huamianshu=0;
+			inference.huamianshu=0;
+			simage=0;
+
+
+		}
 		
 	}
 

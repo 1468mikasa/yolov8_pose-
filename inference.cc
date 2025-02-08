@@ -30,13 +30,14 @@ namespace yolo
 	}
 	
 		// Constructor to initialize the model with specified input shape
-	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver_)
+	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver_,int &num_requests_ )
 	{
-		
+		num_requests=num_requests_;
 		driver=driver_;
 		model_input_shape_ = model_input_shape;
 		model_confidence_threshold_ = model_confidence_threshold;
 		model_NMS_threshold_ = model_NMS_threshold;
+
 		InitializeModel(model_path);
 	}
 
@@ -60,18 +61,20 @@ namespace yolo
 		model = ppp.build(); // Build the preprocessed model
 
 		// Compile the model for inference
+		    // 检查 GPU 属性
+
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, driver,
-		 ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),//THROUGHPUT
-		ov::hint::model_priority(ov::hint::Priority::HIGH)
+		 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT)//THROUGHPUT LATENCY
+		//,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
 		 );
 //compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 		//Ainference_request_ = compiled_model_.create_infer_request(); 
 		//Binference_request_ = compiled_model_.create_infer_request();		 
 		    // 初始化多个推理请求
 
-    const int num_requests = 1;  // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
-
+     // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
+std::cout<<"num_requests=="<<num_requests<<std::endl;
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());
 		flages.push_back(true);
@@ -102,11 +105,11 @@ namespace yolo
 std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 int count=0;
     for (int i = 0; i < flages.size(); i++) {
-        std::cout << i << " == " << flages[i] << "\t";
+       // std::cout << i << " == " << flages[i] << "\t";
         count++;
 
         if (count == 4) {
-            std::cout << std::endl;
+          //  std::cout << std::endl;
             count = 0;
         }
     }
@@ -115,7 +118,7 @@ int count=0;
 		{
 			if(flages[i])
 			{
-				std::cout<<i<<"____"<<std::endl;
+				//std::cout<<i<<"____"<<std::endl;
 
 				request_id=i;
 				flages[request_id]=false;
@@ -139,7 +142,7 @@ int count=0;
 		if (request_id == -1) {
 		RUN=true;
         // 无可用请求，跳过或等待
-		std::cout<<"_____________Runing__"<<std::endl;
+		//std::cout<<"_____________Runing__"<<std::endl;
         return;
    		 }
 
@@ -288,12 +291,12 @@ int count=0;
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 
-			Pose_DrawDetectedObject(frame, result);
+			//Pose_DrawDetectedObject(frame, result);
 
 
 		} 
 
-		std::cout << "Pose_PostProcessing完成" << std::endl;
+	//	std::cout << "Pose_PostProcessing完成" << std::endl;
 
 std::lock_guard<std::mutex> lock(flage_mutex); 
 				flages[i]=true;
