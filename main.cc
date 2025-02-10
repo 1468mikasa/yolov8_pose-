@@ -15,32 +15,102 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <opencv2/highgui.hpp>
 #include <time.h>
 
-class PeriodicPrinter {
+class PeriodicPrinter
+{
 public:
-    PeriodicPrinter() : running(true) {
-        // 启动打印线程
-        printer_thread = std::thread(&PeriodicPrinter::print, this);
-    }
+	PeriodicPrinter() : running(true)
+	{
+		// 启动打印线程
+		printer_thread = std::thread(&PeriodicPrinter::print, this);
+	}
 
-    ~PeriodicPrinter() {
-        // 停止打印线程
-        running = false;
-        if (printer_thread.joinable()) {
-            printer_thread.join();
-        }
-    }
+	~PeriodicPrinter()
+	{
+		// 停止打印线程
+		running = false;
+		if (printer_thread.joinable())
+		{
+			printer_thread.join();
+		}
+	}
 
 private:
-    void print() {
-        while (running) {
-            std::cout << "---------------———100ms———------------" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	void print()
+	{
+		while (running)
+		{
+			std::cout << "---------------———100ms———------------" << std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	}
+
+	std::thread printer_thread;
+	std::atomic<bool> running;
+};
+
+// 新增全局变量控制线程运行
+std::atomic<bool> running(true);
+std::mutex matDeque_mutex;
+
+void GPU_InferenceThread(yolo::Inference& inference, std::deque<cv::Mat>& matDeque) {
+    while (running) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        // 检查队列并获取最新帧
+        cv::Mat frame;
+        {
+            std::lock_guard<std::mutex> lock(matDeque_mutex);
+            if (!matDeque.empty() && !inference.RUN) {
+                frame = matDeque.back().clone(); // 使用最新帧
+                matDeque.pop_back(); // 移除已处理的帧避免重复
+            }
+        }
+
+        // 执行异步推理
+        if (!frame.empty()) {
+            auto frame_ptr = std::make_shared<cv::Mat>(frame);
+            std::async(std::launch::async, [frame_ptr, &inference]() {
+                inference.Pose_Run_async_Inference(*frame_ptr);
+            });
+        }
+
+        // 精确控制100Hz频率
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        if (elapsed < std::chrono::milliseconds(10)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10) - elapsed);
         }
     }
+}
 
-    std::thread printer_thread;
-    std::atomic<bool> running;
-};
+// CPU推理线程函数 (类似GPU线程)
+void CPU_InferenceThread(yolo::Inference& Ainference, std::deque<cv::Mat>& matDeque) {
+    while (running) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        cv::Mat frame;
+        {
+            std::lock_guard<std::mutex> lock(matDeque_mutex);
+            if (!matDeque.empty() && !Ainference.RUN) {
+                frame = matDeque.back().clone();
+                matDeque.pop_back();
+            }
+        }
+
+        if (!frame.empty()) {
+            auto frame_ptr = std::make_shared<cv::Mat>(frame);
+            std::async(std::launch::async, [frame_ptr, &Ainference]() {
+                Ainference.Pose_Run_async_Inference(*frame_ptr);
+            });
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        if (elapsed < std::chrono::milliseconds(10)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10) - elapsed);
+        }
+    }
+}
 
 
 int main(int argc, char **argv)
@@ -98,10 +168,10 @@ int main(int argc, char **argv)
 	*/
 
 	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 5000); 
+	CameraSetExposureTime(hCamera, 2000);
 
-	///CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
-	//CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
+	/// CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
+	// CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
 
 	if (tCapability.sIspCapacity.bMonoSensor)
 	{
@@ -113,149 +183,122 @@ int main(int argc, char **argv)
 		channel = 3;
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
-	//const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
+	// const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
 
-	std::string driver="CPU";
-	int num_requests=1;
+	std::string driver = "CPU";
+	int num_requests = 1;
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver,num_requests);
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold, driver, num_requests);
 
-	//yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
-	// 循环显示1000帧图像
+	// yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
+	//  循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
-		double time_ = 0;
+	double time_ = 0;
 	double result = 0;
-	double shanchu=0;
+	double shanchu = 0;
 
-std::mutex images_mutex;
+	std::mutex images_mutex;
 
-const size_t MAX_BUFFER_SIZE = 8;
+	const size_t MAX_BUFFER_SIZE = 8;
 
-    // 创建一个包含5个Mat对象的deque
-    std::deque<cv::Mat> matDeque;
+	// 创建一个包含5个Mat对象的deque
+	std::deque<cv::Mat> matDeque;
 
+	ThreadPool pool(MAX_BUFFER_SIZE); // 创建一个包含 4 个线程的线程池
 
-    ThreadPool pool(MAX_BUFFER_SIZE);  // 创建一个包含 4 个线程的线程池
+	// PeriodicPrinter printer;
+	// std::this_thread::sleep_for(std::chrono::seconds(1));
+	//
+	// 新增全局变量控制线程运行
+std::atomic<bool> running(true);
+std::mutex matDeque_mutex;
 
-	
-
-		// PeriodicPrinter printer;
-		// std::this_thread::sleep_for(std::chrono::seconds(1));
-    
-
+// GPU推理线程函数
+    // 启动推理线程
+   // std::thread gpu_thread(GPU_InferenceThread, std::ref(inference), std::ref(matDeque));
+   // std::thread cpu_thread(CPU_InferenceThread, std::ref(Ainference), std::ref(matDeque));
+//wu yong
 	while (true)
 	{
 
-		//PeriodicPrinter printer;
-	 	//std::this_thread::sleep_for(std::chrono::seconds(1));
+		// PeriodicPrinter printer;
+		// std::this_thread::sleep_for(std::chrono::seconds(1));
 
-	auto s = std::chrono::high_resolution_clock::now();
+		auto s = std::chrono::high_resolution_clock::now();
 
-
-    if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS) {
-        CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
-        cv::Mat image(
-            cvSize(sFrameInfo.iWidth, sFrameInfo.iHeight),
-            sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
-            g_pRgbBuffer);
-        if (!image.empty()) {
+		if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS)
+		{
+			CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
+			cv::Mat image(
+				cvSize(sFrameInfo.iWidth, sFrameInfo.iHeight),
+				sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
+				g_pRgbBuffer);
+			if (!image.empty())
+			{
 				matDeque.push_back(image);
-				if(matDeque.size()>MAX_BUFFER_SIZE)
+				if (matDeque.size() > MAX_BUFFER_SIZE)
 				{
 					matDeque.pop_front();
 				}
-		}}
+			}
+		}
 
-	if(matDeque.size()>7)
-	{
-			auto s = std::chrono::high_resolution_clock::now();
-	for(int i=0;i<7;i++)
-	{
-			
+if(matDeque.size()>2)
+{
 
-			
-			if (inference.RUN==false)
-				{
-auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
+if (!inference.RUN) {
+    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0]);
+    std::future<void> result = std::async(std::launch::async, [frame_ptr, &inference]() {
+        inference.Pose_Run_async_Inference(*frame_ptr);
+    });
+	//std::cout << "GPU_inference"  << std::endl;//33ms
+} 
+ 		if (Ainference.RUN == false)
+		{
+    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[1]);
+    std::future<void> result = std::async(std::launch::async, [frame_ptr, &Ainference]() {
+        Ainference.Pose_Run_async_Inference(*frame_ptr);
+	//std::cout << "CPU_inference"  << std::endl;
+    });
+} 
 
-				//std::cout<<"chuli_ID="<<i<<std::endl;
-	pool.enqueue([&inference, frame_ptr] {
-				inference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-				});
-				continue;
-				}
-				else if (Ainference.RUN==false)
-				{
-auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
+		} 
 
-					//std::cout<<"Achuli_ID="<<i<<std::endl;
-	pool.enqueue([&Ainference, frame_ptr] {
-				Ainference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-				});
-				continue;
-				}
-/* 								else if (Binference.RUN==false)
-				{
-auto frame_ptr = std::make_shared<cv::Mat>(matDeque[i].clone());
-
-					//std::cout<<"Achuli_ID="<<i<<std::endl;
-	pool.enqueue([&Binference, frame_ptr] {
-				Binference.Pose_Run_async_Inference(*frame_ptr); // 处理最新帧
-				});
-				continue;
-				} */
-			else if (inference.RUN&&Ainference.RUN)
-				{
-					//std::cout<<"all_RUN"<<std::endl;
-					continue;
-				}
+/* 		else if (inference.RUN && Ainference.RUN)
+		{
+			// std::cout<<"all_RUN"<<std::endl;
+			continue;
+		}
+ */
 
 
-	}
-						auto e = std::chrono::high_resolution_clock::now();
-
-
-	
-		std::chrono::duration<double, std::milli> diff = e - s;
-		//std::cout << "diff.count():" << diff.count() << std::endl;
-	}
-        
-		simage+=1;
-        CameraReleaseImageBuffer(hCamera, pbyBuffer);
-    
-
-
-		 
-	
+		simage += 1;
+		CameraReleaseImageBuffer(hCamera, pbyBuffer);
 
 		auto e = std::chrono::high_resolution_clock::now();
 
-
-	
 		std::chrono::duration<double, std::milli> diff = e - s;
 		time += diff.count();
-		//std::cout << "diff.count():" << diff.count() << std::endl;//33ms
-		//std::cout << "time" << time << std::endl;//33ms
+		// std::cout << "diff.count():" << diff.count() << std::endl;//33ms
+		// std::cout << "time" << time << std::endl;//33ms
 
-		if(time>2500)
+		if (time > 2500)
 		{
-		std::cout << "相机帧:" << simage/time*1000 << std::endl;
-		std::cout << "推理帧:" << (Ainference.huamianshu+inference.huamianshu)/time*1000 <<"\n"<<std::endl;
-			time=0;
-			Ainference.huamianshu=0;
-			//Binference.huamianshu=0;
-			inference.huamianshu=0;
-			simage=0;
-
-
+			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
+			std::cout << "推理帧:" << (Ainference.huamianshu + inference.huamianshu) / time * 1000 << "\n"
+					  << std::endl;
+			time = 0;
+			Ainference.huamianshu = 0;
+			// Binference.huamianshu=0;
+			inference.huamianshu = 0;
+			simage = 0;
 		}
-		
 	}
 
 	CameraUnInit(hCamera);
