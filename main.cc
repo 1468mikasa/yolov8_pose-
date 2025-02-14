@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 	// const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
-	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
+	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
 	int num_requests = 1;
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold, driver, num_requests);
+	//yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold, driver, num_requests);
 
 	// yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
 	//  循环显示1000帧图像
@@ -259,14 +259,14 @@ if (!inference.RUN) {
     });
 	//std::cout << "GPU_inference"  << std::endl;//33ms
 } 
- 		if (Ainference.RUN == false)
+/*  		if (Ainference.RUN == false)
 		{
     auto frame_ptr = std::make_shared<cv::Mat>(matDeque[1]);
     std::future<void> result = std::async(std::launch::async, [frame_ptr, &Ainference]() {
         Ainference.Pose_Run_async_Inference(*frame_ptr);
 	//std::cout << "CPU_inference"  << std::endl;
     });
-} 
+}  */
 
 		} 
 
@@ -288,13 +288,13 @@ if (!inference.RUN) {
 		// std::cout << "diff.count():" << diff.count() << std::endl;//33ms
 		// std::cout << "time" << time << std::endl;//33ms
 
-		if (time > 2500)
+		if (time > 1000)
 		{
 			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
-			std::cout << "推理帧:" << (Ainference.huamianshu + inference.huamianshu) / time * 1000 << "\n"
+			std::cout << "推理帧:" << (/* Ainference.huamianshu */ + inference.huamianshu) / time * 1000 << "\n"
 					  << std::endl;
 			time = 0;
-			Ainference.huamianshu = 0;
+		/* 	Ainference.huamianshu = 0; */
 			// Binference.huamianshu=0;
 			inference.huamianshu = 0;
 			simage = 0;

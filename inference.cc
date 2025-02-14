@@ -103,16 +103,6 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
 		int request_id = -1;
 
 std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
-int count=0;
-    for (int i = 0; i < flages.size(); i++) {
-       // std::cout << i << " == " << flages[i] << "\t";
-        count++;
-
-        if (count == 4) {
-          //  std::cout << std::endl;
-            count = 0;
-        }
-    }
 
 		for(int i=0;i<flages.size();i++)
 		{
@@ -143,7 +133,7 @@ int count=0;
 		RUN=true;
         // 无可用请求，跳过或等待
 		//std::cout<<"_____________Runing__"<<std::endl;
-        return;
+        //return;
    		 }
 
 
