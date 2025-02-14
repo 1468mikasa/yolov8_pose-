@@ -79,6 +79,7 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
         inference_requests_.push_back(compiled_model_.create_infer_request());
 		flages.push_back(true);
     }
+std::cout<<"flages=="<<flages.size()<<std::endl;
 
 		short width, height;
 
@@ -102,38 +103,53 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
 		
 		int request_id = -1;
 
-std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
+int count=0;
+/*     for (int i = 0; i < flages.size(); i++) {
+		if(flages[i]==1){
+        std::cout << i << " == " << flages[i] << "\t";
+        count++;
+
+        if (count == 4) {
+            std::cout << std::endl;
+            count = 0;
+        }
+		}
+    }  */
+    for (int i = 0; i < flages.size(); i++) {
+		if(flages[i]==1){
+			count++;
+		}
+	}
+	
+
+//std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 
 		for(int i=0;i<flages.size();i++)
 		{
+			
 			if(flages[i])
 			{
-				//std::cout<<i<<"____"<<std::endl;
+				//std::cout<<i<<"_";
 
 				request_id=i;
 				flages[request_id]=false;
 
-				auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
-			
-					// 使用 std::async 启动异步任务
-				std::future<void> result = std::async(std::launch::async,
-					[this, frame_ptr,request_id](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
-					// 使用 frame_ptr 和引用传递的 inference_request_
-					Preprocessing(*frame_ptr, inference_request_ref.get(),request_id);
-					},
-					std::ref(inference_requests_[request_id]));  
+				Preprocessing(frame.clone(), inference_requests_[request_id],request_id);
+ 
 
-			break;
+			return;
 			}
 		}
 
 
 
 		if (request_id == -1) {
+			std::cout<<"_"<<flages[20]<<"_"<<count;
+			runs++;
 		RUN=true;
         // 无可用请求，跳过或等待
 		//std::cout<<"_____________Runing__"<<std::endl;
-        //return;
+        return;
    		 }
 
 
@@ -177,23 +193,14 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 													}
 												}
         	Pose_PostProcessing(*frame_ptr,inference_request_ref.get(),i);
-
-
-			/*
-        	// 使用 std::async 启动异步任务
-			std::future<void> result = std::async(std::launch::async,
-    		[this, frame_ptr,inference_request_ref]() {
-        	// 使用 frame_ptr 和引用传递的 inference_request_
-        	Pose_PostProcessing(*frame_ptr,inference_request_ref.get());
-   			 });   // 使用 std::ref 传递引用 */
-												//Pose_PostProcessing(*frame_ptr,inference_request_);
-												//std::cout << "Pose_PostProcessing应该没完成" << std::endl;
 												});
 												
 			inference_request.start_async();		  // 启动新的推理任务
 
 			//wo bu zuo yi bu le JOJO!
+			//cv::waitKey(1);
 			//inference_request.wait();
+			//inference_request.wait_for(std::chrono::milliseconds(2));
     // 后处理完成后，安全重置标志位
 
 
@@ -207,7 +214,7 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 		//std::cout << "The  Pose_PostProcessing成功  " << std::endl;
 		// auto frame_copy = frame.clone();  // 创建一个副本
 		const float *detections = inference_request.get_output_tensor().data<const float>();//赶紧用掉inference_request解锁
-		//std::cout << "Pose_PostProcessing进入" << std::endl;
+		//std::cout << "Pose_PostProcessing==" <<i<< "完成";
 
 
 

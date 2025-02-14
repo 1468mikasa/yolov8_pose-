@@ -200,6 +200,7 @@ int main(int argc, char **argv)
 	double simage = 0;
 	double time = 0;
 	double time_ = 0;
+
 	double result = 0;
 	double shanchu = 0;
 
@@ -252,13 +253,13 @@ std::mutex matDeque_mutex;
 if(matDeque.size()>2)
 {
 
-if (!inference.RUN) {
+
     auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0]);
     std::future<void> result = std::async(std::launch::async, [frame_ptr, &inference]() {
         inference.Pose_Run_async_Inference(*frame_ptr);
     });
 	//std::cout << "GPU_inference"  << std::endl;//33ms
-} 
+
 /*  		if (Ainference.RUN == false)
 		{
     auto frame_ptr = std::make_shared<cv::Mat>(matDeque[1]);
@@ -290,14 +291,22 @@ if (!inference.RUN) {
 
 		if (time > 1000)
 		{
+			time_=time_+time;
+			std::cout << "\nruns:" <<inference.runs/simage<< std::endl;
+			std::cout << "time:" << time_ << std::endl;
 			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
 			std::cout << "推理帧:" << (/* Ainference.huamianshu */ + inference.huamianshu) / time * 1000 << "\n"
 					  << std::endl;
+
+			
 			time = 0;
+			inference.runs=0;
 		/* 	Ainference.huamianshu = 0; */
 			// Binference.huamianshu=0;
 			inference.huamianshu = 0;
 			simage = 0;
+
+			
 		}
 	}
 

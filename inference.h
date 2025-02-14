@@ -30,12 +30,13 @@ enum class ProcessState {
 };
 class Inference {
  public:
+ double runs=0;
  double Pose_Run_time=0;
 double Pose_Run_img=0;
  double huamianshu=0;
 //	int flage=1;
 bool RUN=false;
-int num_requests = 19;//mo ren
+int num_requests = 40;//mo ren
 //mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
 std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
 
