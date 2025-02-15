@@ -78,6 +78,7 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());
 		flages.push_back(true);
+		counts.push_back(1);
     }
 std::cout<<"flages=="<<flages.size()<<std::endl;
 
@@ -116,8 +117,8 @@ int count=0;
 		}
     }  */
     for (int i = 0; i < flages.size(); i++) {
-		if(flages[i]==1){
-			count++;
+		if(flages[i]==0){
+			counts[i]++;
 		}
 	}
 	
@@ -130,6 +131,8 @@ int count=0;
 			if(flages[i])
 			{
 				//std::cout<<i<<"_";
+				
+				counts[i]=0;
 
 				request_id=i;
 				flages[request_id]=false;
@@ -144,7 +147,14 @@ int count=0;
 
 
 		if (request_id == -1) {
-			std::cout<<"_"<<flages[20]<<"_"<<count;
+	    for (int i = 0; i < flages.size(); i++) {
+std::cout<<" "<<i<<"-counts="<<counts[i];
+count++;
+        if (count == 8) {
+            std::cout << std::endl;
+            count = 0;
+        }
+	}
 			runs++;
 		RUN=true;
         // 无可用请求，跳过或等待
@@ -192,6 +202,7 @@ int count=0;
 														std::cerr << "Error during inference: " << e.what() << std::endl;
 													}
 												}
+												huamianshu += 1;
         	Pose_PostProcessing(*frame_ptr,inference_request_ref.get(),i);
 												});
 												
@@ -201,11 +212,20 @@ int count=0;
 			//cv::waitKey(1);
 			//inference_request.wait();
 			//inference_request.wait_for(std::chrono::milliseconds(2));
-    // 后处理完成后，安全重置标志位
-
-
-																					 // Set input tensor for inference
 	}
+
+void Inference::stop(int &i, ov::InferRequest &inference_request_)
+{
+	bool flage = inference_request_.wait_for(std::chrono::milliseconds(25));
+ if (!flage) {
+      std::cout<<i<<"-stop	";
+	   inference_request_.cancel();
+        std::lock_guard<std::mutex> lock(flage_mutex);
+        flages[i] = true;  // 立即标记为可用
+		RUN=false;
+    return;
+    }
+}
 
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request, int i)
@@ -298,7 +318,7 @@ int count=0;
 std::lock_guard<std::mutex> lock(flage_mutex); 
 				flages[i]=true;
 		RUN=false;
-		huamianshu += 1;
+		
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)

@@ -30,13 +30,15 @@ enum class ProcessState {
 };
 class Inference {
  public:
+  std::atomic<bool> stop_requested{false}; // 终止标志
  double runs=0;
  double Pose_Run_time=0;
 double Pose_Run_img=0;
  double huamianshu=0;
 //	int flage=1;
 bool RUN=false;
-int num_requests = 40;//mo ren
+int num_requests = 4;//mo ren
+std::vector<int> counts;
 //mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
 std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
 
@@ -65,6 +67,8 @@ std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);
 	void DrawDetectedObject(cv::Mat &frame, const Detection &detections) const;
 	void Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detections) const;
+
+	void stop(int &i, ov::InferRequest &inference_request_);
 	cv::Point2f scale_factor_;			// Scaling factor for the input frame
 	cv::Size2f model_input_shape_;	// Input shape of the model
 	cv::Size model_output_shape_;		// Output shape of the model
