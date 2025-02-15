@@ -21,19 +21,18 @@ namespace yolo
 	// Constructor to initialize the model with specified input shape
 	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold)
 	{
-		
 
 		model_input_shape_ = model_input_shape;
 		model_confidence_threshold_ = model_confidence_threshold;
 		model_NMS_threshold_ = model_NMS_threshold;
 		InitializeModel(model_path);
 	}
-	
-		// Constructor to initialize the model with specified input shape
-	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver_,int &num_requests_ )
+
+	// Constructor to initialize the model with specified input shape
+	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold, std::string &driver_, int &num_requests_)
 	{
-		num_requests=num_requests_;
-		driver=driver_;
+		num_requests = num_requests_;
+		driver = driver_;
 		model_input_shape_ = model_input_shape;
 		model_confidence_threshold_ = model_confidence_threshold;
 		model_NMS_threshold_ = model_NMS_threshold;
@@ -45,7 +44,7 @@ namespace yolo
 	{
 		ov::Core core;													// OpenVINO core object
 		std::shared_ptr<ov::Model> model = core.read_model(model_path); // Read the model from file
-		
+
 		// If the model has dynamic shapes, reshape it to the specified input shape
 		if (model->is_dynamic())
 		{
@@ -61,25 +60,26 @@ namespace yolo
 		model = ppp.build(); // Build the preprocessed model
 
 		// Compile the model for inference
-		    // 检查 GPU 属性
+		// 检查 GPU 属性
 
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, driver,
-		 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT)//THROUGHPUT LATENCY
-		//,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
-		 );
-//compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
-		//Ainference_request_ = compiled_model_.create_infer_request(); 
-		//Binference_request_ = compiled_model_.create_infer_request();		 
-		    // 初始化多个推理请求
+											 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT) // THROUGHPUT LATENCY
+																											   //,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
+		);
+		// compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
+		// Ainference_request_ = compiled_model_.create_infer_request();
+		// Binference_request_ = compiled_model_.create_infer_request();
+		//  初始化多个推理请求
 
-     // 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
-std::cout<<"num_requests=="<<num_requests<<std::endl;
-    for (int i = 0; i < num_requests; ++i) {
-        inference_requests_.push_back(compiled_model_.create_infer_request());
-		flages.push_back(true);
-		counts.push_back(0);
-    }
+		// 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
+		std::cout << "num_requests==" << num_requests << std::endl;
+		for (int i = 0; i < num_requests; ++i)
+		{
+			inference_requests_.push_back(compiled_model_.create_infer_request());
+			flages.push_back(true);
+			counts.push_back(0);
+		}
 
 		short width, height;
 
@@ -100,74 +100,59 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-std::lock_guard<std::mutex> lock(flage_mutex); 
+		std::lock_guard<std::mutex> lock(flage_mutex);
 		int request_id = -1;
-for(int i=0;i<flages.size();i++)
-{
-	if(flages[i]==0)
-	{
-		counts[i]++;
-	}
-}
-
-
-		for(int i=0;i<flages.size();i++)
+		for (int i = 0; i < flages.size(); i++)
 		{
-			if(flages[i])
+			if (flages[i] == 0)
 			{
-				counts[i]=0;
-				//std::cout<<i<<"____"<<std::endl;
-
-				request_id=i;
-				flages[request_id]=false;
-
-				auto frame_ptr = std::make_shared<cv::Mat>(frame); //捕获一下
-			
-					// 使用 std::async 启动异步任务
-				std::future<void> result = std::async(std::launch::async,
-					[this, frame_ptr,request_id](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
-					// 使用 frame_ptr 和引用传递的 inference_request_
-					Preprocessing(*frame_ptr, inference_request_ref.get(),request_id);
-					this->huamianshu++;
-					std::cout<<"id"<<request_id<<"完成";
-					},
-					std::ref(inference_requests_[request_id]));  
-
-			break;
+				counts[i]++;
 			}
 		}
 
-		for(int i=0;i<flages.size();i++)
-{
-//std::cout<<"-id"<<std::setw(2)<<i<<"="<<std::setw(2)<<counts[i];
-}
-std::cout<<"--";
+		for (int i = 0; i < flages.size(); i++)
+		{
+			if (flages[i])
+			{
+				counts[i] = 0;
+				// std::cout<<i<<"____"<<std::endl;
 
-		if (request_id == -1) {
-		RUN=true;
-        // 无可用请求，跳过或等待
-		//std::cout<<"_____________Runing__"<<std::endl;
-        //return;
-				for(int i=0;i<counts.size();i++)
-{
-if(counts[i]>30)
-{
-	inference_requests_[i].cancel();
-	std::cout<<"	stop id"<<i;
-	flages[i]=1;
-	RUN=false;
-	counts[i]=0;
-}
-}
+				request_id = i;
+				flages[request_id] = false;
 
-   		 }
+				auto frame_ptr = std::make_shared<cv::Mat>(frame); // 捕获一下
 
+				// 使用 std::async 启动异步任务
+				std::future<void> result = std::async(std::launch::async, [this, frame_ptr, request_id](std::reference_wrapper<ov::InferRequest> inference_request_ref)
+													  {
+														  // 使用 frame_ptr 和引用传递的 inference_request_
+														  Preprocessing(*frame_ptr, inference_request_ref.get(), request_id);
+														  this->huamianshu++;
+														  // std::cout<<"id"<<request_id<<"完成";
+													  },
+													  std::ref(inference_requests_[request_id]));
 
+				break;
+			}
+		}
 
+		for (int i = 0; i < flages.size(); i++)
+		{
+
+			std::cout << "--";
+
+			if (request_id == -1)
+			{
+				RUN = true;
+				// 无可用请求，跳过或等待
+				// std::cout<<"_____________Runing__"<<std::endl;
+				// return;
+			}
+		}
 	}
 
 	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request ,int i)
+	void Inference::Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request, int i)
 	{
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
@@ -178,64 +163,91 @@ if(counts[i]>30)
 
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
-		inference_request.set_input_tensor(input_tensor);	
+		inference_request.set_input_tensor(input_tensor);
 
-		//std::cout << "画面" << huamianshu << std::endl;
+		// std::cout << "画面" << huamianshu << std::endl;
 
-					// 使用 lambda 捕获 frame，并处理推理结果
-		//auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
+		// 使用 lambda 捕获 frame，并处理推理结果
+		// auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
 		auto frame_ptr = std::make_shared<cv::Mat>(frame.clone());
 
+		auto inference_request_ref = std::ref(inference_request); // 包装成引用
+																  // 设置回调函数
+		auto s = std::chrono::high_resolution_clock::now();
+		inference_request.set_callback([this, frame_ptr, inference_request_ref, i, s](std::exception_ptr ex_ptr)
+									   {
+										   if (ex_ptr)
+										   {
+											   try
+											   {
+												   std::rethrow_exception(ex_ptr);
+											   }
+											   catch (const std::exception &e)
+											   {
+												   std::cerr << "Error during inference: " << e.what() << std::endl;
+											   }
+										   }
+										   auto e = std::chrono::high_resolution_clock::now();
 
-		auto inference_request_ref = std::ref(inference_request);  // 包装成引用
-			// 设置回调函数
-		inference_request.set_callback([this, frame_ptr,inference_request_ref,i](std::exception_ptr ex_ptr)
-											{
-												if (ex_ptr)
-												{
-													try
-													{
-														std::rethrow_exception(ex_ptr);
-													}
-													catch (const std::exception &e)
-													{
-														std::cerr << "Error during inference: " << e.what() << std::endl;
-													}
-												}
-        	Pose_PostProcessing(*frame_ptr,inference_request_ref.get(),i);
+										   std::chrono::duration<double, std::milli> diff = e - s;
+										   std::cout << "time" << diff.count() << "	";
+										   std::cout<<" counts"<<counts[i]<<" ";
 
+										   Pose_PostProcessing(*frame_ptr, inference_request_ref.get(), i);
 
-			/*
-        	// 使用 std::async 启动异步任务
-			std::future<void> result = std::async(std::launch::async,
-    		[this, frame_ptr,inference_request_ref]() {
-        	// 使用 frame_ptr 和引用传递的 inference_request_
-        	Pose_PostProcessing(*frame_ptr,inference_request_ref.get());
-   			 });   // 使用 std::ref 传递引用 */
-												//Pose_PostProcessing(*frame_ptr,inference_request_);
-												//std::cout << "Pose_PostProcessing应该没完成" << std::endl;
-												});
-												
-			inference_request.start_async();		  // 启动新的推理任务
+										   /*
+										   // 使用 std::async 启动异步任务
+										   std::future<void> result = std::async(std::launch::async,
+										   [this, frame_ptr,inference_request_ref]() {
+										   // 使用 frame_ptr 和引用传递的 inference_request_
+										   Pose_PostProcessing(*frame_ptr,inference_request_ref.get());
+											});   // 使用 std::ref 传递引用 */
+										   // Pose_PostProcessing(*frame_ptr,inference_request_);
+										   // std::cout << "Pose_PostProcessing应该没完成" << std::endl;
+									   });
 
-			//wo bu zuo yi bu le JOJO!
-			//inference_request.wait();
-    // 后处理完成后，安全重置标志位
+		inference_request.start_async(); // 启动新的推理任务 inference_request=inference_request[0]
+		for (int i = 0; i < counts.size(); i++)
+		{
+			if (counts[i] > 17)
+			{
+				std::cout << i << "!!";
+				
+				inference_requests_[i].cancel();
+				//counts[i] = 0;
+				flages[i] = 1;
+				RUN = false;
+			}
+		}
 
+		/* 				for (int i = 0; i < counts.size(); i++)
+						{
+							if (counts[i] > 30)
+							{
+								inference_request.cancel();
+								std::cout << "	stop id" << i;
+								flages[i] = 1;
+								RUN = false;
+								counts[i] = 0;
+							}
 
-																					 // Set input tensor for inference
+						} */
+
+		// wo bu zuo yi bu le JOJO!
+		// inference_request.wait();
+		// 后处理完成后，安全重置标志位
+
+		// Set input tensor for inference
 	}
 
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request, int i)
 	{
 
-		//std::cout << "The  Pose_PostProcessing成功  " << std::endl;
-		// auto frame_copy = frame.clone();  // 创建一个副本
-		const float *detections = inference_request.get_output_tensor().data<const float>();//赶紧用掉inference_request解锁
-		//std::cout << "Pose_PostProcessing进入" << std::endl;
-
-
+		// std::cout << "The  Pose_PostProcessing成功  " << std::endl;
+		//  auto frame_copy = frame.clone();  // 创建一个副本
+		const float *detections = inference_request.get_output_tensor().data<const float>(); // 赶紧用掉inference_request解锁
+		// std::cout << "Pose_PostProcessing进入" << std::endl;
 
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
@@ -294,9 +306,8 @@ if(counts[i]>30)
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
-		
-		//std::cout<<"后处理画面数："<<huamianshu<<std::endl;
-		// Collect final detections after NMS
+		// std::cout<<"后处理画面数："<<huamianshu<<std::endl;
+		//  Collect final detections after NMS
 		for (int i = 0; i < NMS_result.size(); ++i)
 		{
 			Detection result;
@@ -307,17 +318,14 @@ if(counts[i]>30)
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 
-			//Pose_DrawDetectedObject(frame, result);
+			// Pose_DrawDetectedObject(frame, result);
+		}
 
+		//	std::cout << "Pose_PostProcessing完成" << std::endl;
 
-		} 
-
-	//	std::cout << "Pose_PostProcessing完成" << std::endl;
-
-std::lock_guard<std::mutex> lock(flage_mutex); 
-				flages[i]=true;
-		RUN=false;
-		
+		std::lock_guard<std::mutex> lock(flage_mutex);
+		flages[i] = true;
+		RUN = false;
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -395,10 +403,11 @@ std::lock_guard<std::mutex> lock(flage_mutex);
 		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
 
-if (!frame.empty()) {
-    cv::imshow("show", frame);
-    cv::waitKey(1);
-}
+		if (!frame.empty())
+		{
+			cv::imshow("show", frame);
+			cv::waitKey(1);
+		}
 	}
 
 } // namespace yolo

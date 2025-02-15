@@ -256,7 +256,9 @@ if (!inference.RUN) {
     auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0]);
     std::future<void> result = std::async(std::launch::async, [frame_ptr, &inference]() {
         inference.Pose_Run_async_Inference(*frame_ptr);
+		
     });
+	
 	//std::cout << "GPU_inference"  << std::endl;//33ms
 } 
 /*  		if (Ainference.RUN == false)
