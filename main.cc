@@ -289,7 +289,7 @@ if (!inference.RUN) {
 		// std::cout << "time" << time << std::endl;//33ms
 
 		if (time > 1000)
-		{
+		{std::cout<<"\n";
 			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
 			std::cout << "推理帧:" << (/* Ainference.huamianshu */ + inference.huamianshu) / time * 1000 << "\n"
 					  << std::endl;

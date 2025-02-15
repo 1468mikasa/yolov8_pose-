@@ -78,6 +78,7 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
     for (int i = 0; i < num_requests; ++i) {
         inference_requests_.push_back(compiled_model_.create_infer_request());
 		flages.push_back(true);
+		counts.push_back(0);
     }
 
 		short width, height;
@@ -99,15 +100,22 @@ std::cout<<"num_requests=="<<num_requests<<std::endl;
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-		
+std::lock_guard<std::mutex> lock(flage_mutex); 
 		int request_id = -1;
+for(int i=0;i<flages.size();i++)
+{
+	if(flages[i]==0)
+	{
+		counts[i]++;
+	}
+}
 
-std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 
 		for(int i=0;i<flages.size();i++)
 		{
 			if(flages[i])
 			{
+				counts[i]=0;
 				//std::cout<<i<<"____"<<std::endl;
 
 				request_id=i;
@@ -120,6 +128,8 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 					[this, frame_ptr,request_id](std::reference_wrapper<ov::InferRequest> inference_request_ref) {
 					// 使用 frame_ptr 和引用传递的 inference_request_
 					Preprocessing(*frame_ptr, inference_request_ref.get(),request_id);
+					this->huamianshu++;
+					std::cout<<"id"<<request_id<<"完成";
 					},
 					std::ref(inference_requests_[request_id]));  
 
@@ -127,13 +137,29 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 			}
 		}
 
-
+		for(int i=0;i<flages.size();i++)
+{
+//std::cout<<"-id"<<std::setw(2)<<i<<"="<<std::setw(2)<<counts[i];
+}
+std::cout<<"--";
 
 		if (request_id == -1) {
 		RUN=true;
         // 无可用请求，跳过或等待
 		//std::cout<<"_____________Runing__"<<std::endl;
         //return;
+				for(int i=0;i<counts.size();i++)
+{
+if(counts[i]>30)
+{
+	inference_requests_[i].cancel();
+	std::cout<<"	stop id"<<i;
+	flages[i]=1;
+	RUN=false;
+	counts[i]=0;
+}
+}
+
    		 }
 
 
@@ -291,7 +317,7 @@ std::lock_guard<std::mutex> lock(flage_mutex);  // 使用正确的变量名
 std::lock_guard<std::mutex> lock(flage_mutex); 
 				flages[i]=true;
 		RUN=false;
-		huamianshu += 1;
+		
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
