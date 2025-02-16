@@ -64,7 +64,7 @@ namespace yolo
 
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, driver,
-											 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT) // THROUGHPUT LATENCY
+											 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT),ov::hint::model_priority(ov::hint::Priority::MEDIUM) // THROUGHPUT LATENCY
 																											   //,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
 		);
 		// compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
@@ -80,6 +80,15 @@ namespace yolo
 			flages.push_back(true);
 			counts.push_back(0);
 		}
+
+		        // 计算预处理帧和输出张量所需内存大小
+        size_t input_size = model_input_shape_.width * model_input_shape_.height * 3 * sizeof(float);
+        size_t output_size = model_output_shape_.width * model_output_shape_.height * sizeof(float);
+        
+        // 预分配内存（按最大并发请求数扩展）
+        resized_frame_pool.resize(num_requests * input_size + 64);
+        detection_output_pool.resize(num_requests * output_size + 64);
+
 
 		short width, height;
 
@@ -154,15 +163,26 @@ namespace yolo
 	// Method to preprocess the input frame
 	void Inference::Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request, int i)
 	{
-		cv::Mat resized_frame;
-		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+    // 从内存池获取预分配空间（64字节对齐）
+    uint8_t* aligned_buffer = reinterpret_cast<uint8_t*>(
+        (reinterpret_cast<uintptr_t>(resized_frame_pool.data()) + 63 + i*640*640*3) & ~63
+    );
+    
+    cv::Mat resized_frame(model_input_shape_, CV_8UC3, aligned_buffer);
+    cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_LINEAR);
 
 		// Calculate scaling factor
 		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
 
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
-		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+		//const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+		    // 直接使用内存池数据创建Tensor
+    ov::Tensor input_tensor(
+        compiled_model_.input().get_element_type(), 
+        compiled_model_.input().get_shape(), 
+        aligned_buffer
+    );
 		inference_request.set_input_tensor(input_tensor);
 
 		// std::cout << "画面" << huamianshu << std::endl;
@@ -322,6 +342,8 @@ namespace yolo
 		}
 
 		//	std::cout << "Pose_PostProcessing完成" << std::endl;
+			cv::imshow("show", frame);
+			cv::waitKey(1);
 
 		std::lock_guard<std::mutex> lock(flage_mutex);
 		flages[i] = true;
