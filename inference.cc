@@ -122,15 +122,10 @@ namespace yolo
 
 				auto frame_ptr = std::make_shared<cv::Mat>(frame); // 捕获一下
 
-				// 使用 std::async 启动异步任务
-				std::future<void> result = std::async(std::launch::async, [this, frame_ptr, request_id](std::reference_wrapper<ov::InferRequest> inference_request_ref)
-													  {
-														  // 使用 frame_ptr 和引用传递的 inference_request_
-														  Preprocessing(*frame_ptr, inference_request_ref.get(), request_id);
-														  this->huamianshu++;
-														  // std::cout<<"id"<<request_id<<"完成";
-													  },
-													  std::ref(inference_requests_[request_id]));
+
+				Preprocessing(*frame_ptr, inference_request_ref.get(), request_id);
+				this->huamianshu++;
+
 
 				break;
 			}
