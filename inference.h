@@ -56,10 +56,10 @@ std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
  private:
 	void InitializeModel(const std::string &model_path);
 
-
-	void Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request ,int i);//yu
+	void Preprocessing(const cv::Mat &frame,int i);
+	
 	//void Pose_PostProcessing(cv::Mat &frame);
-	void Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request ,int i);//hou
+	void Pose_PostProcessing(cv::Mat &frame,int i);//hou
 	
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);

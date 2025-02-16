@@ -253,7 +253,7 @@ if(matDeque.size()>2)
 {
 
 if (!inference.RUN) {
-    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0]);
+    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0].clone());
     std::future<void> result = std::async(std::launch::async, [frame_ptr, &inference]() {
         inference.Pose_Run_async_Inference(*frame_ptr);
 		

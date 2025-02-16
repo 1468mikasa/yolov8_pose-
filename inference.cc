@@ -59,18 +59,11 @@ namespace yolo
 		ppp.output().tensor().set_element_type(ov::element::f32);
 		model = ppp.build(); // Build the preprocessed model
 
-		// Compile the model for inference
-		// 检查 GPU 属性
-
 		// compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, driver,
 											 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT) // THROUGHPUT LATENCY
 																											   //,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
 		);
-		// compiled_model_ = core.compile_model(model, "GPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
-		// Ainference_request_ = compiled_model_.create_infer_request();
-		// Binference_request_ = compiled_model_.create_infer_request();
-		//  初始化多个推理请求
 
 		// 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
 		std::cout << "num_requests==" << num_requests << std::endl;
@@ -119,13 +112,9 @@ namespace yolo
 
 				request_id = i;
 				flages[request_id] = false;
-
-				auto frame_ptr = std::make_shared<cv::Mat>(frame); // 捕获一下
-
-
-				Preprocessing(*frame_ptr, inference_request_ref.get(), request_id);
+				
+				Preprocessing(frame,request_id);
 				this->huamianshu++;
-
 
 				break;
 			}
@@ -134,7 +123,7 @@ namespace yolo
 		for (int i = 0; i < flages.size(); i++)
 		{
 
-			//std::cout << "--";
+			std::cout << " -";
 
 			if (request_id == -1)
 			{
@@ -147,7 +136,7 @@ namespace yolo
 	}
 
 	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame, ov::InferRequest &inference_request, int i)
+	void Inference::Preprocessing(const cv::Mat &frame,int i)
 	{
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
@@ -158,18 +147,18 @@ namespace yolo
 
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
-		inference_request.set_input_tensor(input_tensor);
+		inference_requests_[i].set_input_tensor(input_tensor);
 
 		// std::cout << "画面" << huamianshu << std::endl;
 
 		// 使用 lambda 捕获 frame，并处理推理结果
 		// auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-		auto frame_ptr = std::make_shared<cv::Mat>(frame.clone());
+		auto frame_ptr = std::make_shared<cv::Mat>(frame);
 
-		auto inference_request_ref = std::ref(inference_request); // 包装成引用
+		auto inference_request_ref = std::ref(inference_requests_[i]); // 包装成引用
 																  // 设置回调函数
 		auto s = std::chrono::high_resolution_clock::now();
-		inference_request.set_callback([this, frame_ptr, inference_request_ref, i, s](std::exception_ptr ex_ptr)
+		inference_requests_[i].set_callback([this, frame_ptr, inference_request_ref, i, s](std::exception_ptr ex_ptr)
 									   {
 										   if (ex_ptr)
 										   {
@@ -185,28 +174,20 @@ namespace yolo
 										   auto e = std::chrono::high_resolution_clock::now();
 
 										   std::chrono::duration<double, std::milli> diff = e - s;
-										  // std::cout << "time" << diff.count() << "	";
+										   std::cout << "time" << diff.count() << "	";
 										  // std::cout<<" counts"<<counts[i]<<" ";
 
-										   Pose_PostProcessing(*frame_ptr, inference_request_ref.get(), i);
+										   Pose_PostProcessing(*frame_ptr,i);
 
-										   /*
-										   // 使用 std::async 启动异步任务
-										   std::future<void> result = std::async(std::launch::async,
-										   [this, frame_ptr,inference_request_ref]() {
-										   // 使用 frame_ptr 和引用传递的 inference_request_
-										   Pose_PostProcessing(*frame_ptr,inference_request_ref.get());
-											});   // 使用 std::ref 传递引用 */
-										   // Pose_PostProcessing(*frame_ptr,inference_request_);
-										   // std::cout << "Pose_PostProcessing应该没完成" << std::endl;
 									   });
 
-		inference_request.start_async(); // 启动新的推理任务 inference_request=inference_request[0]
+		//std::lock_guard<std::mutex> lock(flage_mutex);
+		inference_requests_[i].start_async(); // 启动新的推理任务 inference_request=inference_request[0]
 		for (int i = 0; i < counts.size(); i++)
 		{
 			if (counts[i] > 17)
 			{
-				//std::cout << i << "!!";
+
 				
 				inference_requests_[i].cancel();
 				//counts[i] = 0;
@@ -215,34 +196,18 @@ namespace yolo
 			}
 		}
 
-		/* 				for (int i = 0; i < counts.size(); i++)
-						{
-							if (counts[i] > 30)
-							{
-								inference_request.cancel();
-								std::cout << "	stop id" << i;
-								flages[i] = 1;
-								RUN = false;
-								counts[i] = 0;
-							}
-
-						} */
-
-		// wo bu zuo yi bu le JOJO!
-		// inference_request.wait();
-		// 后处理完成后，安全重置标志位
-
-		// Set input tensor for inference
 	}
 
 	// Method to postprocess the inference results
-	void Inference::Pose_PostProcessing(cv::Mat &frame, ov::InferRequest &inference_request, int i)
+	void Inference::Pose_PostProcessing(cv::Mat &frame,int i)
 	{
 
-		// std::cout << "The  Pose_PostProcessing成功  " << std::endl;
-		//  auto frame_copy = frame.clone();  // 创建一个副本
-		const float *detections = inference_request.get_output_tensor().data<const float>(); // 赶紧用掉inference_request解锁
-		// std::cout << "Pose_PostProcessing进入" << std::endl;
+		const float *detections = inference_requests_[i].get_output_tensor().data<const float>(); // 赶紧用掉inference_request解锁
+
+		std::lock_guard<std::mutex> lock(flage_mutex);
+		flages[i] = true;
+		RUN = false;
+		flage_mutex.unlock();
 
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
@@ -266,9 +231,6 @@ namespace yolo
 			// Check if the detection meets the confidence threshold
 			if (score > model_confidence_threshold_)
 			{
-				// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs.col(i) << std::endl;
-				// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
-				// std::cout << "The full i-th column matrix at column " << i << ":\n" << detection_outputs.col(i) << std::endl;
 
 				class_list.push_back(class_id.y);
 				confidence_list.push_back(score);
@@ -296,13 +258,10 @@ namespace yolo
 				box_list.push_back(box);
 			}
 		}
-		// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs<< std::endl;
-		//  Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
+
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
-		// std::cout<<"后处理画面数："<<huamianshu<<std::endl;
-		//  Collect final detections after NMS
 		for (int i = 0; i < NMS_result.size(); ++i)
 		{
 			Detection result;
@@ -312,15 +271,9 @@ namespace yolo
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
-
-			// Pose_DrawDetectedObject(frame, result);
 		}
 
-		//	std::cout << "Pose_PostProcessing完成" << std::endl;
 
-		std::lock_guard<std::mutex> lock(flage_mutex);
-		flages[i] = true;
-		RUN = false;
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -347,7 +300,7 @@ namespace yolo
 
 	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
 	{
-		// auto frame = frame_.clone();  // 创建一个副本
+	
 		// std::cout << "识别 " << std::endl;
 		const cv::Rect &box = detection.box;
 		const float &confidence = detection.confidence;
