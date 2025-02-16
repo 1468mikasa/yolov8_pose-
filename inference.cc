@@ -139,7 +139,7 @@ namespace yolo
 		for (int i = 0; i < flages.size(); i++)
 		{
 
-			std::cout << "--";
+			//std::cout << "--";
 
 			if (request_id == -1)
 			{
@@ -190,8 +190,8 @@ namespace yolo
 										   auto e = std::chrono::high_resolution_clock::now();
 
 										   std::chrono::duration<double, std::milli> diff = e - s;
-										   std::cout << "time" << diff.count() << "	";
-										   std::cout<<" counts"<<counts[i]<<" ";
+										  // std::cout << "time" << diff.count() << "	";
+										  // std::cout<<" counts"<<counts[i]<<" ";
 
 										   Pose_PostProcessing(*frame_ptr, inference_request_ref.get(), i);
 
@@ -211,7 +211,7 @@ namespace yolo
 		{
 			if (counts[i] > 17)
 			{
-				std::cout << i << "!!";
+				//std::cout << i << "!!";
 				
 				inference_requests_[i].cancel();
 				//counts[i] = 0;
