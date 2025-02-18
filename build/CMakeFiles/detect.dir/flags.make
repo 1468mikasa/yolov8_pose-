@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/opt/intel/openvino_2025/runtime/include -I/home/wei/linuxSDK_V2.1.0.41/include -isystem /usr/include/opencv4
 
-CXX_FLAGS = -std=gnu++14
+CXX_FLAGS =  -fopenmp -std=gnu++14
 

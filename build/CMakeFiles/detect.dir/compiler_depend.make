@@ -862,7 +862,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/opencv4/opencv2/imgcodecs.hpp \
   /usr/include/opencv4/opencv2/videoio.hpp \
   /usr/include/c++/11/future \
-  /usr/include/c++/11/bits/atomic_futex.h
+  /usr/include/c++/11/bits/atomic_futex.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
 
 
 /usr/include/opencv4/opencv2/core/types_c.h:
@@ -1678,6 +1679,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
 
 /usr/include/c++/11/typeinfo:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h:
 
 /usr/include/c++/11/bits/refwrap.h:
 

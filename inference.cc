@@ -100,6 +100,18 @@ namespace yolo
 			if (flages[i] == 0)
 			{
 				counts[i]++;
+/* 				if (counts[(i + 1) % 20] == 5)
+				{
+std::lock_guard<std::mutex> lock(flage_mutex);
+					std::cout << " sha" << i << "=" << std::setw(2) << std::left << counts[i] << " ";
+					inference_requests_[i].cancel();
+				}
+				if (counts[i] > 10)
+				{
+					counts[i] = 0;
+					flages[i] = 1;
+					RUN = false;
+				} */
 			}
 		}
 
@@ -112,9 +124,9 @@ namespace yolo
 
 				request_id = i;
 				flages[request_id] = false;
-				
-				Preprocessing(frame,request_id);
-				this->huamianshu++;
+
+				Preprocessing(frame, request_id);
+				huamianshu++;
 
 				break;
 			}
@@ -123,7 +135,7 @@ namespace yolo
 		for (int i = 0; i < flages.size(); i++)
 		{
 
-			std::cout << " -";
+			//	std::cout << "--------------------1帧--------------------" << std::endl;
 
 			if (request_id == -1)
 			{
@@ -136,14 +148,18 @@ namespace yolo
 	}
 
 	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame,int i)
+	void Inference::Preprocessing(const cv::Mat &frame, int i)
 	{
+		auto s = std::chrono::high_resolution_clock::now();
+
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
 
 		// Calculate scaling factor
+		
 		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+		auto frame_ptr = std::make_shared<cv::Mat>(frame);
 
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
@@ -153,62 +169,74 @@ namespace yolo
 
 		// 使用 lambda 捕获 frame，并处理推理结果
 		// auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-		auto frame_ptr = std::make_shared<cv::Mat>(frame);
+		
 
-		auto inference_request_ref = std::ref(inference_requests_[i]); // 包装成引用
-																  // 设置回调函数
-		auto s = std::chrono::high_resolution_clock::now();
-		inference_requests_[i].set_callback([this, frame_ptr, inference_request_ref, i, s](std::exception_ptr ex_ptr)
-									   {
-										   if (ex_ptr)
-										   {
-											   try
-											   {
-												   std::rethrow_exception(ex_ptr);
-											   }
-											   catch (const std::exception &e)
-											   {
-												   std::cerr << "Error during inference: " << e.what() << std::endl;
-											   }
-										   }
-										   auto e = std::chrono::high_resolution_clock::now();
+		// auto inference_request_ref = std::ref(inference_requests_[i]); // 包装成引用
+		//  设置回调函数
+/* 														auto e = std::chrono::high_resolution_clock::now();
 
-										   std::chrono::duration<double, std::milli> diff = e - s;
-										   std::cout << "time" << diff.count() << "	";
-										  // std::cout<<" counts"<<counts[i]<<" ";
+												std::chrono::duration<double, std::milli> diff = e - s;
+												std::cout << " per_id" << std::setw(2) << std::left << i << 
+												"=time" << std::setw(4) << std::left << diff.count() << 
+												
+												" "; */
+		inference_requests_[i].set_callback([this, frame_ptr, i, s](std::exception_ptr ex_ptr)
+											{
 
-										   Pose_PostProcessing(*frame_ptr,i);
+												if (ex_ptr)
+												{
+													try
+													{
+														std::rethrow_exception(ex_ptr);
+													}
+													catch (const std::exception &e)
+													{
+														std::cerr << "Error during inference: " << e.what() << std::endl;
+													}
+												}
+/* 												auto e = std::chrono::high_resolution_clock::now();
 
-									   });
+												std::chrono::duration<double, std::milli> diff = e - s;
 
-		//std::lock_guard<std::mutex> lock(flage_mutex);
+												std::cout << " id" << std::setw(2) << std::left << i << 
+												"=time" << std::setw(4) << std::left << diff.count() << 
+												"=counts" << std::setw(4) << std::left << counts[i]  << 
+												" "; */
+
+												/* 												for (int i = 0; i < counts.size(); i++)
+																								{
+																									std::cout << i << "=" << std::setw(3) << counts[i] << " ";
+																									counts[i] = 0;
+																								}
+																								std::cout<<"\n"; */
+												//auto frame_ptr_ = std::make_shared<cv::Mat>(frame_ptr);
+
+    Pose_PostProcessing(*frame_ptr, i);// 并行执行的代码
+
+       // Pose_PostProcessing(*frame_ptr, i);
+
+    										//Pose_PostProcessing(*frame_ptr, i);
+											});
+
+		// std::lock_guard<std::mutex> lock(flage_mutex);
+
+		
 		inference_requests_[i].start_async(); // 启动新的推理任务 inference_request=inference_request[0]
-		for (int i = 0; i < counts.size(); i++)
-		{
-			if (counts[i] > 17)
-			{
 
-				
-				inference_requests_[i].cancel();
-				//counts[i] = 0;
-				flages[i] = 1;
-				RUN = false;
-			}
-		}
-
+		// std::cout<<i<<"="<<counts[i]<<" ";
 	}
 
 	// Method to postprocess the inference results
-	void Inference::Pose_PostProcessing(cv::Mat &frame,int i)
+	void Inference::Pose_PostProcessing(cv::Mat &frame, int i)
 	{
-
+		
 		const float *detections = inference_requests_[i].get_output_tensor().data<const float>(); // 赶紧用掉inference_request解锁
 
 		std::lock_guard<std::mutex> lock(flage_mutex);
 		flages[i] = true;
 		RUN = false;
 		flage_mutex.unlock();
-
+//cv::waitKey(100);
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
 		std::vector<cv::Rect> box_list;
@@ -271,9 +299,9 @@ namespace yolo
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
+				//Pose_DrawDetectedObject(frame,result);
 		}
-
-
+	
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -300,7 +328,7 @@ namespace yolo
 
 	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
 	{
-	
+
 		// std::cout << "识别 " << std::endl;
 		const cv::Rect &box = detection.box;
 		const float &confidence = detection.confidence;

@@ -77,7 +77,7 @@ std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
 
 std::vector<ov::InferRequest>inference_requests_;
 std::vector<bool>flages;
-
+std::vector<bool>sha_flages;
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 
 	//ov::InferRequest infer_request;

@@ -865,4 +865,5 @@ CMakeFiles/detect.dir/main.cc.o
  /usr/include/opencv4/opencv2/videoio.hpp
  /usr/include/c++/11/future
  /usr/include/c++/11/bits/atomic_futex.h
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
 
