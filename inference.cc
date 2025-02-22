@@ -271,7 +271,10 @@ namespace yolo
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
+			Pose_DrawDetectedObject(frame,result);
 		}
+					cv::imshow("show", frame);
+			cv::waitKey(1);
 
 
 	}
@@ -346,7 +349,7 @@ namespace yolo
 		// 绘制第二对对角点的连线
 		cv::line(frame, Key_points.key_point[1], Key_points.key_point[3], cv::Scalar(0, 255, 0), 2);
 
-		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl;
+		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl; //0在左上 逆时针
 		std::cout << "1	" << Key_points.key_point[1].x << "<<x y>>" << Key_points.key_point[1].y << std::endl;
 		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;

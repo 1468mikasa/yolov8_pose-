@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	*/
 
 	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 2000);
+	CameraSetExposureTime(hCamera, 5000);
 
 	/// CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
 	// CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
