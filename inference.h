@@ -37,7 +37,7 @@ double Pose_Run_img=0;
  double huamianshu=0;
 //	int flage=1;
 bool RUN=false;
-int num_requests = 4;//mo ren
+int num_requests = 20;//mo ren
 std::vector<int> counts;
 //mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
 std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
