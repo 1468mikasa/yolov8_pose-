@@ -1,0 +1,23 @@
+description: Ultralytics YOLOv8n-pose model trained on RMG.yaml
+author: Ultralytics
+date: '2025-02-19T18:41:26.286997'
+version: 8.3.63
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: pose
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: BG
+  1: RG
+args:
+  batch: 1
+  half: false
+  int8: true
+  dynamic: false
+kpt_shape:
+- 4
+- 3
