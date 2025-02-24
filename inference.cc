@@ -93,7 +93,7 @@ namespace yolo
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-		// std::lock_guard<std::mutex> lock(flage_mutex);
+		std::lock_guard<std::mutex> lock(flage_mutex);
 		int request_id = -1;
 
 		for (int i = 0; i < flages.size(); i++)
@@ -159,9 +159,7 @@ namespace yolo
 											RUN = false;
 											flage_mutex.unlock(); });
 
-		// std::lock_guard<std::mutex> lock(flage_mutex);
-		inference_requests_[i].start_async(); // 启动新的推理任务 inference_request=inference_request[0]
-		std::cout<<" run"<<std::endl;
+		inference_requests_[i].start_async(); // 启动新的推理任务
 	}
 
 	// Method to postprocess the inference results
