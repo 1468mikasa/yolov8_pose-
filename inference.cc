@@ -93,50 +93,29 @@ namespace yolo
 
 	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
 	{
-		std::lock_guard<std::mutex> lock(flage_mutex);
+		// std::lock_guard<std::mutex> lock(flage_mutex);
 		int request_id = -1;
-		for (int i = 0; i < flages.size(); i++)
-		{
-			if (flages[i] == 0)
-			{
-				counts[i]++;
-			}
-		}
 
 		for (int i = 0; i < flages.size(); i++)
 		{
 			if (flages[i])
 			{
 				counts[i] = 0;
-				// std::cout<<i<<"____"<<std::endl;
+				std::cout <<" "<<i<< std::endl;
 
 				request_id = i;
 				flages[request_id] = false;
-				
-				Preprocessing(frame,request_id);
+
+				Preprocessing(frame, request_id);
 				this->huamianshu++;
 
 				break;
 			}
 		}
-
-		for (int i = 0; i < flages.size(); i++)
-		{
-
-			std::cout << " -";
-
-			if (request_id == -1)
-			{
-				RUN = true;
-				// 无可用请求，跳过或等待
-				// std::cout<<"_____________Runing__"<<std::endl;
-				// return;
-			}
-		}
 	}
 
 	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame,int i)
+	void Inference::Preprocessing(const cv::Mat &frame, int i)
 	{
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
@@ -149,17 +128,13 @@ namespace yolo
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
 		inference_requests_[i].set_input_tensor(input_tensor);
 
-		// std::cout << "画面" << huamianshu << std::endl;
-
 		// 使用 lambda 捕获 frame，并处理推理结果
 		// auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
 		auto frame_ptr = std::make_shared<cv::Mat>(frame);
-
-		auto inference_request_ref = std::ref(inference_requests_[i]); // 包装成引用
-																  // 设置回调函数
+		// 设置回调函数
 		auto s = std::chrono::high_resolution_clock::now();
-		inference_requests_[i].set_callback([this, frame_ptr, inference_request_ref, i, s](std::exception_ptr ex_ptr)
-									   {
+		inference_requests_[i].set_callback([this, frame_ptr, i, s](std::exception_ptr ex_ptr)
+											{
 										   if (ex_ptr)
 										   {
 											   try
@@ -174,40 +149,26 @@ namespace yolo
 										   auto e = std::chrono::high_resolution_clock::now();
 
 										   std::chrono::duration<double, std::milli> diff = e - s;
-										   std::cout << "time" << diff.count() << "	";
+										   std::cout << "\ntime" << diff.count() << "	";
 										  // std::cout<<" counts"<<counts[i]<<" ";
 
 										   Pose_PostProcessing(*frame_ptr,i);
 
-									   });
+											std::lock_guard<std::mutex> lock(flage_mutex);
+											flages[i] = true;
+											RUN = false;
+											flage_mutex.unlock(); });
 
-		//std::lock_guard<std::mutex> lock(flage_mutex);
+		// std::lock_guard<std::mutex> lock(flage_mutex);
 		inference_requests_[i].start_async(); // 启动新的推理任务 inference_request=inference_request[0]
-		for (int i = 0; i < counts.size(); i++)
-		{
-			if (counts[i] > 17)
-			{
-
-				
-				inference_requests_[i].cancel();
-				//counts[i] = 0;
-				flages[i] = 1;
-				RUN = false;
-			}
-		}
-
+		std::cout<<" run"<<std::endl;
 	}
 
 	// Method to postprocess the inference results
-	void Inference::Pose_PostProcessing(cv::Mat &frame,int i)
+	void Inference::Pose_PostProcessing(cv::Mat &frame, int i)
 	{
 
-		const float *detections = inference_requests_[i].get_output_tensor().data<const float>(); // 赶紧用掉inference_request解锁
-
-		std::lock_guard<std::mutex> lock(flage_mutex);
-		flages[i] = true;
-		RUN = false;
-		flage_mutex.unlock();
+		const float *detections = inference_requests_[i].get_output_tensor().data<const float>(); // 赶紧用掉inference_request解
 
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
@@ -271,12 +232,10 @@ namespace yolo
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
-			Pose_DrawDetectedObject(frame,result);
+			// Pose_DrawDetectedObject(frame,result);
 		}
-					cv::imshow("show", frame);
-			cv::waitKey(1);
-
-
+		//cv::imshow("show", frame);
+		//cv::waitKey(1);
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -303,7 +262,7 @@ namespace yolo
 
 	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
 	{
-	
+
 		// std::cout << "识别 " << std::endl;
 		const cv::Rect &box = detection.box;
 		const float &confidence = detection.confidence;
@@ -349,7 +308,7 @@ namespace yolo
 		// 绘制第二对对角点的连线
 		cv::line(frame, Key_points.key_point[1], Key_points.key_point[3], cv::Scalar(0, 255, 0), 2);
 
-		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl; //0在左上 逆时针
+		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl; // 0在左上 逆时针
 		std::cout << "1	" << Key_points.key_point[1].x << "<<x y>>" << Key_points.key_point[1].y << std::endl;
 		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
 		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;

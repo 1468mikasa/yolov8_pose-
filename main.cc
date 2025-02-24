@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	*/
 
 	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 5000);
+	CameraSetExposureTime(hCamera, 1000);
 
 	/// CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
 	// CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
@@ -225,7 +225,7 @@ std::mutex matDeque_mutex;
    // std::thread cpu_thread(CPU_InferenceThread, std::ref(Ainference), std::ref(matDeque));
 //wu yong
 	while (true)
-	{
+{
 
 		// PeriodicPrinter printer;
 		// std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -241,26 +241,12 @@ std::mutex matDeque_mutex;
 				g_pRgbBuffer);
 			if (!image.empty())
 			{
-				matDeque.push_back(image);
-				if (matDeque.size() > MAX_BUFFER_SIZE)
-				{
-					matDeque.pop_front();
-				}
+ inference.Pose_Run_async_Inference(image);
+
 			}
 		}
+	std::cout << " x"  ;//33ms
 
-if(matDeque.size()>2)
-{
-
-if (!inference.RUN) {
-    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[0].clone());
-    std::future<void> result = std::async(std::launch::async, [frame_ptr, &inference]() {
-        inference.Pose_Run_async_Inference(*frame_ptr);
-		
-    });
-	
-	//std::cout << "GPU_inference"  << std::endl;//33ms
-} 
 /*  		if (Ainference.RUN == false)
 		{
     auto frame_ptr = std::make_shared<cv::Mat>(matDeque[1]);
@@ -269,17 +255,6 @@ if (!inference.RUN) {
 	//std::cout << "CPU_inference"  << std::endl;
     });
 }  */
-
-		} 
-
-/* 		else if (inference.RUN && Ainference.RUN)
-		{
-			// std::cout<<"all_RUN"<<std::endl;
-			continue;
-		}
- */
-
-
 		simage += 1;
 		CameraReleaseImageBuffer(hCamera, pbyBuffer);
 
@@ -293,15 +268,17 @@ if (!inference.RUN) {
 		if (time > 1000)
 		{std::cout<<"\n";
 			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
-			std::cout << "推理帧:" << (/* Ainference.huamianshu */ + inference.huamianshu) / time * 1000 << "\n"
+			std::cout << "推理帧:" << (/* Ainference.huamianshu */  inference.huamianshu) / time * 1000 << "\n"
 					  << std::endl;
 			time = 0;
 		/* 	Ainference.huamianshu = 0; */
 			// Binference.huamianshu=0;
 			inference.huamianshu = 0;
 			simage = 0;
+		
 		}
-	}
+
+}
 
 	CameraUnInit(hCamera);
 	// 注意，现反初始化后再free
