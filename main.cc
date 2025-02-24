@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 	tSdkCameraCapbility tCapability; // 设备描述信息
 	tSdkFrameHead sFrameInfo;
 	BYTE *pbyBuffer;
-	int iDisplayFrames = 100000;
+	int iDisplayFrames = 2000;
 	IplImage *iplImage = NULL;
 	int channel = 3;
 
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 	// const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
-	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/best_openvino_model/best.xml";
+	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
@@ -224,9 +224,11 @@ std::mutex matDeque_mutex;
    // std::thread gpu_thread(GPU_InferenceThread, std::ref(inference), std::ref(matDeque));
    // std::thread cpu_thread(CPU_InferenceThread, std::ref(Ainference), std::ref(matDeque));
 //wu yong
-	while (true)
-{
 
+//while (iDisplayFrames)
+	while (1)
+{
+iDisplayFrames--;
 		// PeriodicPrinter printer;
 		// std::this_thread::sleep_for(std::chrono::seconds(1));
 

@@ -101,7 +101,7 @@ namespace yolo
 			if (flages[i])
 			{
 				counts[i] = 0;
-				std::cout <<" "<<i<< std::endl;
+				std::cout << " " << i << std::endl;
 
 				request_id = i;
 				flages[request_id] = false;
@@ -114,53 +114,53 @@ namespace yolo
 		}
 	}
 
-	// Method to preprocess the input frame
-	void Inference::Preprocessing(const cv::Mat &frame, int i)
-	{
-		cv::Mat resized_frame;
-		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+void Inference::Preprocessing(const cv::Mat &frame, int i) {
+    cv::Mat resized_frame;
+    cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA);
 
-		// Calculate scaling factor
-		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
-		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+    // 计算缩放因子
+    scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
+    scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
 
-		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
-		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
-		inference_requests_[i].set_input_tensor(input_tensor);
+    float *input_data = (float *)resized_frame.data;
+    const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data);
+    inference_requests_[i].set_input_tensor(input_tensor);
 
-		// 使用 lambda 捕获 frame，并处理推理结果
-		// auto frame_ptr = std::make_shared<cv::Mat>(frame); // Use shared_ptr to ensure frame's lifecycle
-		auto frame_ptr = std::make_shared<cv::Mat>(frame);
-		// 设置回调函数
-		auto s = std::chrono::high_resolution_clock::now();
-		inference_requests_[i].set_callback([this, frame_ptr, i, s](std::exception_ptr ex_ptr)
-											{
-										   if (ex_ptr)
-										   {
-											   try
-											   {
-												   std::rethrow_exception(ex_ptr);
-											   }
-											   catch (const std::exception &e)
-											   {
-												   std::cerr << "Error during inference: " << e.what() << std::endl;
-											   }
-										   }
-										   auto e = std::chrono::high_resolution_clock::now();
+    auto frame_ptr = std::make_shared<cv::Mat>(frame);
 
-										   std::chrono::duration<double, std::milli> diff = e - s;
-										   std::cout << "\ntime" << diff.count() << "	";
-										  // std::cout<<" counts"<<counts[i]<<" ";
+    // 记录异步推理开始时间
+    auto start_time = std::chrono::high_resolution_clock::now();
 
-										   Pose_PostProcessing(*frame_ptr,i);
+    inference_requests_[i].set_callback([this, frame_ptr, i, start_time](std::exception_ptr ex_ptr) {
+        if (ex_ptr) {
+            try {
+                std::rethrow_exception(ex_ptr);
+            } catch (const std::exception &e) {
+                std::cerr << "Error during inference: " << e.what() << std::endl;
+            }
+        }
 
-											std::lock_guard<std::mutex> lock(flage_mutex);
-											flages[i] = true;
-											RUN = false;
-											flage_mutex.unlock(); });
+        // 记录异步推理结束时间
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-		inference_requests_[i].start_async(); // 启动新的推理任务
-	}
+        // 输出总耗时（包括推理和后处理）
+        std::cout << "Async inference time: " << duration.count() << " ms" << std::endl;
+
+        // 执行后处理
+        this->Pose_PostProcessing(*frame_ptr, i);
+
+        // 更新状态
+        {
+            std::lock_guard<std::mutex> lock(flage_mutex);
+            flages[i] = true;
+            RUN = false;
+        }
+    });
+
+    // 启动异步推理
+    inference_requests_[i].start_async();
+}
 
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame, int i)
@@ -232,8 +232,8 @@ namespace yolo
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 			// Pose_DrawDetectedObject(frame,result);
 		}
-		//cv::imshow("show", frame);
-		//cv::waitKey(1);
+		// cv::imshow("show", frame);
+		// cv::waitKey(1);
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
