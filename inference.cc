@@ -49,10 +49,6 @@ namespace yolo
 		//compiled_model_ = core.compile_model(model, "AUTO");
 		compiled_model_ = core.compile_model(model, "GPU",
 		ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY)
-		,ov::hint::execution_mode(ov::hint::ExecutionMode::PERFORMANCE)
-
-		,
-		 ov::enable_bf16(true)
 		);
 
 		inference_request_ = compiled_model_.create_infer_request(); // 
@@ -75,7 +71,7 @@ namespace yolo
 
 				// 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
 		std::cout << "num_requests==" << num_requests << std::endl;
-		for (int i = 0; i < num_requests; ++i)
+		for (int i = 0; i < (num_requests*1); ++i)
 		{
 			inference_requests_.push_back(compiled_model_.create_infer_request());
 			flages.push_back(true);
@@ -89,20 +85,18 @@ namespace yolo
 
 		if (flages[run_id])
 		{
-			int id=run_id;
-
-			flages[run_id] = false;
-
-			Preprocessing(frame,id);
-
 			auto s = std::chrono::high_resolution_clock::now();
 
+			int id=run_id;
+			flages[run_id] = false;
+			
 			run_id=(id+1)%num_requests;
 
-			  auto frame_ptr = std::make_shared<cv::Mat>(frame);
+			auto frame_ptr = std::make_shared<cv::Mat>(frame);
 			std::thread([frame_ptr,this,id,s]() {
+				Preprocessing(*frame_ptr,id);
+
 				this->inference_requests_[id].infer();
-			
 				Pose_PostProcessing(*frame_ptr,id);
 
 				huamianshu++;
@@ -113,12 +107,10 @@ namespace yolo
 
 			 }).detach();
 
-/* 			auto e = std::chrono::high_resolution_clock::now();
-			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
-			std::cout<<" time"<<diff.count()<<" "; */
-
 			return;
 		}
+
+
 
 }
 	void Inference::Preprocessing(const cv::Mat &frame,int id)

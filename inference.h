@@ -25,11 +25,12 @@ struct Detection {
 
 class Inference {
  public:
- int num_requests=4;
+ int num_requests=2;
  std::vector<bool>flages;
  int run_id=0;
  int huamianshu;
  std::vector<cv::Mat> frame_ptr_;
+ cv::Mat mat_3;
  bool yuchuli=false;
 
 	Inference() {}
