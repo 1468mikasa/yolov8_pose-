@@ -101,7 +101,7 @@ namespace yolo
 			if (flages[i])
 			{
 				counts[i] = 0;
-				std::cout << " " << i << std::endl;
+				std::cout << " " << i ;
 
 				request_id = i;
 				flages[request_id] = false;
@@ -145,7 +145,7 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
         // 输出总耗时（包括推理和后处理）
-        std::cout << "Async inference time: " << duration.count() << " ms" << std::endl;
+        std::cout << "Async inference time: " << duration.count() << " ms" ;
 
         // 执行后处理
         this->Pose_PostProcessing(*frame_ptr, i);

@@ -351,8 +351,10 @@ CMakeFiles/detect.dir/main.cc.o: /home/wei/桌面/yolov8_pose-/main.cc \
  /usr/include/c++/11/bits/std_thread.h \
  /usr/include/c++/11/bits/this_thread_sleep.h /usr/include/c++/11/queue \
  /usr/include/c++/11/bits/stl_queue.h \
- /usr/include/c++/11/condition_variable /usr/include/CameraApi.h \
- /usr/include/CameraDefine.h /usr/include/CameraStatus.h \
+ /usr/include/c++/11/condition_variable \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h \
  /usr/include/opencv4/opencv2/imgproc/imgproc_c.h \
  /usr/include/opencv4/opencv2/imgproc/types_c.h \
  /usr/include/opencv4/opencv2/core/core_c.h \
