@@ -1,117 +1,16 @@
 #include "inference.h"
-#include "tongbu.h"
 #include "CameraApi.h" // 相机SDK的API头文件
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <stdio.h>
 #include <chrono>
-#include <future>
-#include <atomic>
 using namespace cv;
 
 unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <iostream>
 #include <opencv2/highgui.hpp>
-#include <time.h>
-
-class PeriodicPrinter
-{
-public:
-	PeriodicPrinter() : running(true)
-	{
-		// 启动打印线程
-		printer_thread = std::thread(&PeriodicPrinter::print, this);
-	}
-
-	~PeriodicPrinter()
-	{
-		// 停止打印线程
-		running = false;
-		if (printer_thread.joinable())
-		{
-			printer_thread.join();
-		}
-	}
-
-private:
-	void print()
-	{
-		while (running)
-		{
-			std::cout << "---------------———100ms———------------" << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-	}
-
-	std::thread printer_thread;
-	std::atomic<bool> running;
-};
-
-// 新增全局变量控制线程运行
-std::atomic<bool> running(true);
-std::mutex matDeque_mutex;
-
-void GPU_InferenceThread(yolo::Inference& inference, std::deque<cv::Mat>& matDeque) {
-    while (running) {
-        auto start = std::chrono::high_resolution_clock::now();
-        
-        // 检查队列并获取最新帧
-        cv::Mat frame;
-        {
-            std::lock_guard<std::mutex> lock(matDeque_mutex);
-            if (!matDeque.empty() && !inference.RUN) {
-                frame = matDeque.back().clone(); // 使用最新帧
-                matDeque.pop_back(); // 移除已处理的帧避免重复
-            }
-        }
-
-        // 执行异步推理
-        if (!frame.empty()) {
-            auto frame_ptr = std::make_shared<cv::Mat>(frame);
-            std::async(std::launch::async, [frame_ptr, &inference]() {
-                inference.Pose_Run_async_Inference(*frame_ptr);
-            });
-        }
-
-        // 精确控制100Hz频率
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        if (elapsed < std::chrono::milliseconds(10)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10) - elapsed);
-        }
-    }
-}
-
-// CPU推理线程函数 (类似GPU线程)
-void CPU_InferenceThread(yolo::Inference& Ainference, std::deque<cv::Mat>& matDeque) {
-    while (running) {
-        auto start = std::chrono::high_resolution_clock::now();
-        
-        cv::Mat frame;
-        {
-            std::lock_guard<std::mutex> lock(matDeque_mutex);
-            if (!matDeque.empty() && !Ainference.RUN) {
-                frame = matDeque.back().clone();
-                matDeque.pop_back();
-            }
-        }
-
-        if (!frame.empty()) {
-            auto frame_ptr = std::make_shared<cv::Mat>(frame);
-            std::async(std::launch::async, [frame_ptr, &Ainference]() {
-                Ainference.Pose_Run_async_Inference(*frame_ptr);
-            });
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        if (elapsed < std::chrono::milliseconds(10)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10) - elapsed);
-        }
-    }
-}
-
+#include <future>
 
 int main(int argc, char **argv)
 {
@@ -122,7 +21,7 @@ int main(int argc, char **argv)
 	tSdkCameraCapbility tCapability; // 设备描述信息
 	tSdkFrameHead sFrameInfo;
 	BYTE *pbyBuffer;
-	int iDisplayFrames = 2000;
+	int iDisplayFrames = 10000;
 	IplImage *iplImage = NULL;
 	int channel = 3;
 
@@ -148,6 +47,8 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	
+
 	// 获得相机的特性描述结构体。该结构体中包含了相机可设置的各种参数的范围信息。决定了相关函数的参数
 	CameraGetCapability(hCamera, &tCapability);
 
@@ -166,12 +67,8 @@ int main(int argc, char **argv)
 		 CameraSetGamma、CameraSetConrast、CameraSetGain等设置图像伽马、对比度、RGB数字增益等等。
 		 本例程只是为了演示如何将SDK中获取的图像，转成OpenCV的图像格式,以便调用OpenCV的图像处理函数进行后续开发
 	*/
-
-	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 1000);
-
-	/// CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
-	// CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
+		CameraSetAeState(hCamera, false);
+	CameraSetExposureTime(hCamera, 10);
 
 	if (tCapability.sIspCapacity.bMonoSensor)
 	{
@@ -183,104 +80,80 @@ int main(int argc, char **argv)
 		channel = 3;
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
-	// const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
+
 	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
-	const float confidence_threshold = 0.2;
+	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
 
-	std::string driver = "CPU";
-	int num_requests = 1;
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	//yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold, driver, num_requests);
-
-	// yolo::Inference Binference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold,driver);
-	//  循环显示1000帧图像
+		yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
-	double time_ = 0;
 	double result = 0;
-	double shanchu = 0;
+	std::vector<cv::Mat> images;
 
-	std::mutex images_mutex;
-
-	const size_t MAX_BUFFER_SIZE = 8;
-
-	// 创建一个包含5个Mat对象的deque
-	std::deque<cv::Mat> matDeque;
-
-	ThreadPool pool(MAX_BUFFER_SIZE); // 创建一个包含 4 个线程的线程池
-
-	// PeriodicPrinter printer;
-	// std::this_thread::sleep_for(std::chrono::seconds(1));
-	//
-	// 新增全局变量控制线程运行
-std::atomic<bool> running(true);
-std::mutex matDeque_mutex;
-
-// GPU推理线程函数
-    // 启动推理线程
-   // std::thread gpu_thread(GPU_InferenceThread, std::ref(inference), std::ref(matDeque));
-   // std::thread cpu_thread(CPU_InferenceThread, std::ref(Ainference), std::ref(matDeque));
-//wu yong
-
-//while (iDisplayFrames)
 	while (1)
-{
-iDisplayFrames--;
-		// PeriodicPrinter printer;
-		// std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		auto s = std::chrono::high_resolution_clock::now();
+	{
+		auto start = std::chrono::high_resolution_clock::now();
 
 		if (CameraGetImageBuffer(hCamera, &sFrameInfo, &pbyBuffer, 1000) == CAMERA_STATUS_SUCCESS)
 		{
 			CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer, &sFrameInfo);
+
 			cv::Mat image(
 				cvSize(sFrameInfo.iWidth, sFrameInfo.iHeight),
 				sFrameInfo.uiMediaType == CAMERA_MEDIA_TYPE_MONO8 ? CV_8UC1 : CV_8UC3,
 				g_pRgbBuffer);
-			if (!image.empty())
+
+			// Check if the image was successfully loaded
+			if (image.empty())
 			{
- inference.Pose_Run_async_Inference(image);
-
+				std::cerr << "ERROR: image is empty" << std::endl;
+				return 1;
 			}
-		}
-	std::cout << " x"  ;//33ms
-
-/*  		if (Ainference.RUN == false)
-		{
-    auto frame_ptr = std::make_shared<cv::Mat>(matDeque[1]);
-    std::future<void> result = std::async(std::launch::async, [frame_ptr, &Ainference]() {
-        Ainference.Pose_Run_async_Inference(*frame_ptr);
-	//std::cout << "CPU_inference"  << std::endl;
-    });
-}  */
-		simage += 1;
+		images.push_back(image);
 		CameraReleaseImageBuffer(hCamera, pbyBuffer);
-
-		auto e = std::chrono::high_resolution_clock::now();
-
-		std::chrono::duration<double, std::milli> diff = e - s;
-		time += diff.count();
-		// std::cout << "diff.count():" << diff.count() << std::endl;//33ms
-		// std::cout << "time" << time << std::endl;//33ms
-
-		if (time > 1000)
-		{std::cout<<"\n";
-			std::cout << "相机帧:" << simage / time * 1000 << std::endl;
-			std::cout << "推理帧:" << (/* Ainference.huamianshu */  inference.huamianshu) / time * 1000 << "\n"
-					  << std::endl;
-			time = 0;
-		/* 	Ainference.huamianshu = 0; */
-			// Binference.huamianshu=0;
-			inference.huamianshu = 0;
-			simage = 0;
-		
 		}
 
-}
+		if(images.size()>2)
+		{
+		auto frame_ptr = std::make_shared<cv::Mat>(images[0]);
+		auto frame_ptr_ = std::make_shared<cv::Mat>(images[1]);
+		
+			std::async(std::launch::async, [frame_ptr,&inference]() {
+        inference.Pose_RunInference(*frame_ptr);
+		//inference.Pose_RunInference.frame_ptr_.push_back(frame_ptr_);
+		});
+		
+					std::async(std::launch::async, [frame_ptr_,&Ainference]() {
+        Ainference.Pose_RunInference(*frame_ptr_);
+		//inference.Pose_RunInference.frame_ptr_.push_back(frame_ptr_);
+		});
+
+		}
+
+
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> diff = end - start;
+		simage += 1;
+		time += diff.count();
+		if (time > 1000)
+		{
+			auto result = (simage / time) * 1000;
+			std::cout << "\n" << std::endl;
+			std::cout << result << "帧" << std::endl;
+			std::cout << ((inference.huamianshu+Ainference.huamianshu)/ time )* 1000 << "处理帧" << std::endl;
+
+			time = 0;
+			simage = 0;
+			inference.huamianshu =0;
+			Ainference.huamianshu=0;
+		}
+	}
 
 	CameraUnInit(hCamera);
 	// 注意，现反初始化后再free

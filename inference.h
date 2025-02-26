@@ -23,43 +23,30 @@ struct Detection {
 	Key_PointAndFloat Key_Point;
 };
 
-enum class ProcessState {
-	Ainference_request_RUN,  
-	Binference_request_RUN,
-    
-};
 class Inference {
  public:
- std::vector<int> counts;
- double Pose_Run_time=0;
-double Pose_Run_img=0;
- double huamianshu=0;
-//	int flage=1;
-bool RUN=false;
-int num_requests = 1;//mo ren
-//mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
-std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
+ int num_requests=20;
+ std::vector<bool>flages;
+ int run_id=0;
+ int huamianshu;
+ std::vector<cv::Mat> frame_ptr_;
+ bool yuchuli=false;
 
-	ProcessState run=ProcessState::Ainference_request_RUN;
 	Inference() {}
 	// Constructor to initialize the model with default input shape
 	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
 	// Constructor to initialize the model with specified input shape
 	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold);
 
-	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold,std::string &driver,int &num_requests_);
-
-
 	void RunInference(cv::Mat &frame);
 	void Pose_RunInference(cv::Mat &frame);
 	void Pose_Run_async_Inference(cv::Mat &frame);
+	
  private:
 	void InitializeModel(const std::string &model_path);
-
-	void Preprocessing(const cv::Mat &frame,int i);
-	
-	//void Pose_PostProcessing(cv::Mat &frame);
-	void Pose_PostProcessing(cv::Mat &frame,int i);//hou
+	void Preprocessing(const cv::Mat &frame,int id);
+	void PostProcessing(cv::Mat &frame);
+	void Pose_PostProcessing(cv::Mat &frame,int id);
 	
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	Key_PointAndFloat GetKeyPointsinBox(Key_PointAndFloat &Key);
@@ -68,16 +55,8 @@ std::string driver = "BATCH:GPU"; //"MULTI:GPU.1,GPU.0" "BATCH:GPU(1)"
 	cv::Point2f scale_factor_;			// Scaling factor for the input frame
 	cv::Size2f model_input_shape_;	// Input shape of the model
 	cv::Size model_output_shape_;		// Output shape of the model
-
-
-	ov::InferRequest Ainference_request_;  // OpenVINO inference request
-	ov::InferRequest Binference_request_;  // OpenVINO inference request
-	ov::InferRequest Cinference_request_;  // OpenVINO inference request
-	ov::InferRequest Dinference_request_;  // OpenVINO inference request
-
-std::vector<ov::InferRequest>inference_requests_;
-std::vector<bool>flages;
-
+	std::vector<ov::InferRequest> inference_requests_;
+	ov::InferRequest inference_request_;  // OpenVINO inference request
 	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
 
 	//ov::InferRequest infer_request;
@@ -88,9 +67,6 @@ std::vector<bool>flages;
 	std::vector<std::string> classes_ {
 		"BG", "RG", 
 	}; 
-
-private:
-    mutable std::mutex flage_mutex;  // 保护 flage 的互斥量
 		/*std::vector<std::string> classes_ {
 		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", 
 		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", 

@@ -3,7 +3,6 @@
 #include <memory>
 #include <opencv2/dnn.hpp>
 #include <random>
-#include <thread>
 #include <future>
 
 namespace yolo
@@ -21,22 +20,9 @@ namespace yolo
 	// Constructor to initialize the model with specified input shape
 	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold)
 	{
-
 		model_input_shape_ = model_input_shape;
 		model_confidence_threshold_ = model_confidence_threshold;
 		model_NMS_threshold_ = model_NMS_threshold;
-		InitializeModel(model_path);
-	}
-
-	// Constructor to initialize the model with specified input shape
-	Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold, std::string &driver_, int &num_requests_)
-	{
-		num_requests = num_requests_;
-		driver = driver_;
-		model_input_shape_ = model_input_shape;
-		model_confidence_threshold_ = model_confidence_threshold;
-		model_NMS_threshold_ = model_NMS_threshold;
-
 		InitializeModel(model_path);
 	}
 
@@ -59,20 +45,11 @@ namespace yolo
 		ppp.output().tensor().set_element_type(ov::element::f32);
 		model = ppp.build(); // Build the preprocessed model
 
-		// compiled_model_ = core.compile_model(model, "AUTO");
-		compiled_model_ = core.compile_model(model, driver,
-											 ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT) // THROUGHPUT LATENCY
-																											   //,ov::hint::model_priority(ov::hint::Priority::MEDIUM)
-		);
+		// Compile the model for inference
+		//compiled_model_ = core.compile_model(model, "AUTO");
+		compiled_model_ = core.compile_model(model, "GPU");
 
-		// 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
-		std::cout << "num_requests==" << num_requests << std::endl;
-		for (int i = 0; i < num_requests; ++i)
-		{
-			inference_requests_.push_back(compiled_model_.create_infer_request());
-			flages.push_back(true);
-			counts.push_back(0);
-		}
+		inference_request_ = compiled_model_.create_infer_request(); // 
 
 		short width, height;
 
@@ -89,92 +66,148 @@ namespace yolo
 		height = output_shape[1];
 		width = output_shape[2];
 		model_output_shape_ = cv::Size(width, height);
-	}
 
-	void Inference::Pose_Run_async_Inference(cv::Mat &frame)
-	{
-		std::lock_guard<std::mutex> lock(flage_mutex);
-		int request_id = -1;
-
-		for (int i = 0; i < flages.size(); i++)
+				// 根据硬件调整数量 20-29hz 4-28.68hz 12-29hz
+		std::cout << "num_requests==" << num_requests << std::endl;
+		for (int i = 0; i < num_requests; ++i)
 		{
-			if (flages[i])
-			{
-				counts[i] = 0;
-				std::cout << " " << i << std::endl;
-
-				request_id = i;
-				flages[request_id] = false;
-
-				Preprocessing(frame, request_id);
-				this->huamianshu++;
-
-				break;
-			}
+			inference_requests_.push_back(compiled_model_.create_infer_request());
+			flages.push_back(true);
 		}
+
 	}
 
-void Inference::Preprocessing(const cv::Mat &frame, int i) {
-    cv::Mat resized_frame;
-    cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA);
+	void Inference::Pose_RunInference(cv::Mat &frame)
+	{
+				// Preprocess the input frame
 
-    // 计算缩放因子
-    scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
-    scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+		if (flages[run_id])
+		{
+			int id=run_id;
 
-    float *input_data = (float *)resized_frame.data;
-    const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data);
-    inference_requests_[i].set_input_tensor(input_tensor);
+			flages[run_id] = false;
 
-    auto frame_ptr = std::make_shared<cv::Mat>(frame);
+			Preprocessing(frame,id);
 
-    // 记录异步推理开始时间
-    auto start_time = std::chrono::high_resolution_clock::now();
+			auto s = std::chrono::high_resolution_clock::now();
 
-    inference_requests_[i].set_callback([this, frame_ptr, i, start_time](std::exception_ptr ex_ptr) {
-        if (ex_ptr) {
-            try {
-                std::rethrow_exception(ex_ptr);
-            } catch (const std::exception &e) {
-                std::cerr << "Error during inference: " << e.what() << std::endl;
-            }
-        }
+			inference_requests_[id].infer(); // Run inference
+			std::cout<<run_id<<" 请求完成 ";
 
-        // 记录异步推理结束时间
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+			run_id=(id+1)%num_requests;
+			
 
-        // 输出总耗时（包括推理和后处理）
-        std::cout << "Async inference time: " << duration.count() << " ms" << std::endl;
+			auto e = std::chrono::high_resolution_clock::now();
+			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
+			std::cout<<diff.count()<<" ";
 
-        // 执行后处理
-        this->Pose_PostProcessing(*frame_ptr, i);
+			auto frame_ptr = std::make_shared<cv::Mat>(frame);
+			std::future<void> result = std::async(std::launch::async, [this,frame_ptr,id]() {
+					this-> Pose_PostProcessing(*frame_ptr,id);
+					//std::cout << "CPU_inference"  << std::endl;
+					});
+			
 
-        // 更新状态
-        {
-            std::lock_guard<std::mutex> lock(flage_mutex);
-            flages[i] = true;
-            RUN = false;
-        }
-    });
 
-    // 启动异步推理
-    inference_requests_[i].start_async();
+			huamianshu++;
+
+			return;
+		}
+
 }
+	void Inference::Preprocessing(const cv::Mat &frame,int id)
+	{
+		std::cout<<" 预处理开始 ";
+		cv::Mat resized_frame;
+		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+
+		// Calculate scaling factor
+		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
+		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+
+		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
+		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+		inference_requests_[id].set_input_tensor(input_tensor);		 // Set input tensor for inference
+		yuchuli=true;																		
+	}
 
 	// Method to postprocess the inference results
-	void Inference::Pose_PostProcessing(cv::Mat &frame, int i)
+	void Inference::PostProcessing(cv::Mat &frame)
 	{
-
-		const float *detections = inference_requests_[i].get_output_tensor().data<const float>(); // 赶紧用掉inference_request解
-
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
 		std::vector<cv::Rect> box_list;
 		std::vector<Key_PointAndFloat> key_list;
 		// Get the output tensor from the inference request
-
+		const float *detections = inference_request_.get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
+
+
+		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+		for (int i = 0; i < detection_outputs.cols; ++i)
+		{
+			const cv::Mat classes_scores = detection_outputs.col(i).rowRange(4, detection_outputs.rows); // 4
+
+			cv::Point class_id;
+			double score;
+			cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id); // Find the class with the highest score
+
+			// Check if the detection meets the confidence threshold
+			if (score > model_confidence_threshold_)
+			{
+				// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs.col(i) << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << detection_outputs.col(i) << std::endl;
+
+				class_list.push_back(class_id.y);
+				confidence_list.push_back(score);
+				std::cout << score << "###" << std::endl;
+
+				const float x = detection_outputs.at<float>(0, i);
+				const float y = detection_outputs.at<float>(1, i);
+				const float w = detection_outputs.at<float>(2, i);
+				const float h = detection_outputs.at<float>(3, i);
+
+				cv::Rect box;
+				box.x = static_cast<int>(x);
+				box.y = static_cast<int>(y);
+				box.width = static_cast<int>(w);
+				box.height = static_cast<int>(h);
+				box_list.push_back(box);
+			}
+		}
+		// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs<< std::endl;
+		//  Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
+		std::vector<int> NMS_result;
+		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
+
+		// Collect final detections after NMS
+		for (int i = 0; i < NMS_result.size(); ++i)
+		{
+			Detection result;
+			const unsigned short id = NMS_result[i];
+			// std::cout << "NMS后的box_list ID"<<id << std::endl;
+			result.class_id = class_list[id];
+			result.confidence = confidence_list[id];
+			result.box = GetBoundingBox(box_list[id]);
+			result.Key_Point = key_list[id];
+			DrawDetectedObject(frame, result);
+		}
+	}
+
+	// Method to postprocess the inference results
+	void Inference::Pose_PostProcessing(cv::Mat &frame,int id)
+	{
+		std::cout<<" 后处理开始 ";
+		std::vector<int> class_list;
+		std::vector<float> confidence_list;
+		std::vector<cv::Rect> box_list;
+		std::vector<Key_PointAndFloat> key_list;
+		// Get the output tensor from the inference request
+		const float *detections = inference_requests_[id].get_output_tensor().data<const float>();
+		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
+		flages[id]=true;
+
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
 		int labels_size = 2;
@@ -190,6 +223,9 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
 			// Check if the detection meets the confidence threshold
 			if (score > model_confidence_threshold_)
 			{
+				// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs.col(i) << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
+				// std::cout << "The full i-th column matrix at column " << i << ":\n" << detection_outputs.col(i) << std::endl;
 
 				class_list.push_back(class_id.y);
 				confidence_list.push_back(score);
@@ -217,10 +253,12 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
 				box_list.push_back(box);
 			}
 		}
-
+		// std::cout << "The  detection_outputs  "  << ":\n" << detection_outputs<< std::endl;
+		//  Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
 		std::vector<int> NMS_result;
 		cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
+		// Collect final detections after NMS
 		for (int i = 0; i < NMS_result.size(); ++i)
 		{
 			Detection result;
@@ -230,10 +268,9 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
-			// Pose_DrawDetectedObject(frame,result);
+			//Pose_DrawDetectedObject(frame, result);
 		}
-		// cv::imshow("show", frame);
-		// cv::waitKey(1);
+		std::cout<<" 后处理结束 ";
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
@@ -261,7 +298,6 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
 	void Inference::Pose_DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
 	{
 
-		// std::cout << "识别 " << std::endl;
 		const cv::Rect &box = detection.box;
 		const float &confidence = detection.confidence;
 		const int &class_id = detection.class_id;
@@ -306,16 +342,38 @@ void Inference::Preprocessing(const cv::Mat &frame, int i) {
 		// 绘制第二对对角点的连线
 		cv::line(frame, Key_points.key_point[1], Key_points.key_point[3], cv::Scalar(0, 255, 0), 2);
 
-		std::cout << "0   " << Key_points.key_point[0].x << "<<x y>>" << Key_points.key_point[0].y << std::endl; // 0在左上 逆时针
-		std::cout << "1	" << Key_points.key_point[1].x << "<<x y>>" << Key_points.key_point[1].y << std::endl;
-		std::cout << "2	" << Key_points.key_point[2].x << "<<x y>>" << Key_points.key_point[2].y << std::endl;
-		std::cout << "3	" << Key_points.key_point[3].x << "<<x y>>" << Key_points.key_point[3].y << std::endl;
-
-		if (!frame.empty())
-		{
-			cv::imshow("show", frame);
-			cv::waitKey(1);
-		}
+		std::cout<<"0   "<<Key_points.key_point[0].x<<"<<x y>>"<<Key_points.key_point[0].y<<std::endl;
+		std::cout<<"1	"<<Key_points.key_point[1].x<<"<<x y>>"<<Key_points.key_point[1].y<<std::endl;
+		std::cout<<"2	"<<Key_points.key_point[2].x<<"<<x y>>"<<Key_points.key_point[2].y<<std::endl;
+		std::cout<<"3	"<<Key_points.key_point[3].x<<"<<x y>>"<<Key_points.key_point[3].y<<std::endl;
 	}
 
+	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const
+	{
+		const cv::Rect &box = detection.box;
+		const float &confidence = detection.confidence;
+		const int &class_id = detection.class_id;
+
+		// Generate a random color for the bounding box
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dis(120, 255);
+		const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
+
+		// Draw the bounding box around the detected object
+		cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
+
+		// Prepare the class label and confidence text
+		std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
+
+		// Get the size of the text box
+		cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
+		cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
+
+		// Draw the text box
+		cv::rectangle(frame, textBox, color, cv::FILLED);
+
+		// Put the class label and confidence text above the bounding box
+		cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
+	}
 } // namespace yolo
