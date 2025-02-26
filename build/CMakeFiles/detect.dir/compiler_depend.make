@@ -427,7 +427,8 @@ CMakeFiles/detect.dir/inference.cc.o: ../inference.cc \
   /usr/include/c++/11/future \
   /usr/include/c++/11/condition_variable \
   /usr/include/c++/11/bits/atomic_futex.h \
-  /usr/include/c++/11/bits/std_thread.h
+  /usr/include/c++/11/bits/std_thread.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
 
 CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/stdc-predef.h \
@@ -851,7 +852,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
   /usr/include/c++/11/future \
   /usr/include/c++/11/condition_variable \
   /usr/include/c++/11/bits/atomic_futex.h \
-  /usr/include/c++/11/bits/std_thread.h
+  /usr/include/c++/11/bits/std_thread.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
 
 
 /usr/include/opencv4/opencv2/highgui/highgui.hpp:
@@ -1643,6 +1645,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
 
 /usr/include/c++/11/typeinfo:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h:
 
 /usr/include/c++/11/bits/refwrap.h:
 

@@ -361,4 +361,5 @@ CMakeFiles/detect.dir/main.cc.o: /home/wei/桌面/yolov8_pose-/main.cc \
  /usr/include/opencv4/opencv2/videoio.hpp /usr/include/c++/11/future \
  /usr/include/c++/11/condition_variable \
  /usr/include/c++/11/bits/atomic_futex.h \
- /usr/include/c++/11/bits/std_thread.h
+ /usr/include/c++/11/bits/std_thread.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h

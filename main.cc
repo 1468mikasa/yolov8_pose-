@@ -11,6 +11,8 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <iostream>
 #include <opencv2/highgui.hpp>
 #include <future>
+#include <omp.h>
+
 
 int main(int argc, char **argv)
 {
@@ -122,7 +124,7 @@ int main(int argc, char **argv)
 		{
 
         inference.Pose_RunInference(images[0]);		
-        Ainference.Pose_RunInference(images[1]);
+      //  Ainference.Pose_RunInference(images[1]);
 
 		}
 

@@ -4,7 +4,7 @@
 #include <opencv2/dnn.hpp>
 #include <random>
 #include <future>
-
+#include <omp.h>
 namespace yolo
 {
 
@@ -91,25 +91,18 @@ namespace yolo
 
 			auto s = std::chrono::high_resolution_clock::now();
 
-			inference_requests_[id].infer(); // Run inference
-			std::cout<<run_id<<" 请求完成 ";
-
 			run_id=(id+1)%num_requests;
+
 			
+			std::thread([frame,this,id]() {
+				this->inference_requests_[id].infer();
+				Pose_PostProcessing(frame,id);
+				huamianshu++;
+			 }).detach();
 
 			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
-			std::cout<<diff.count()<<" ";
-
-			auto frame_ptr = std::make_shared<cv::Mat>(frame);
-			std::future<void> result = std::async(std::launch::async, [this,frame_ptr,id]() {
-					this-> Pose_PostProcessing(*frame_ptr,id);
-					//std::cout << "CPU_inference"  << std::endl;
-					});
-			
-
-
-			huamianshu++;
+			std::cout<<" time"<<diff.count()<<" ";
 
 			return;
 		}
@@ -117,7 +110,7 @@ namespace yolo
 }
 	void Inference::Preprocessing(const cv::Mat &frame,int id)
 	{
-		std::cout<<" 预处理开始 ";
+		//std::cout<<" 预处理开始 ";
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
 
@@ -198,7 +191,7 @@ namespace yolo
 	// Method to postprocess the inference results
 	void Inference::Pose_PostProcessing(cv::Mat &frame,int id)
 	{
-		std::cout<<" 后处理开始 ";
+	//	std::cout<<" 后处理开始 ";
 		std::vector<int> class_list;
 		std::vector<float> confidence_list;
 		std::vector<cv::Rect> box_list;
@@ -270,7 +263,7 @@ namespace yolo
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 			//Pose_DrawDetectedObject(frame, result);
 		}
-		std::cout<<" 后处理结束 ";
+		//std::cout<<" 后处理结束 ";
 	}
 
 	Key_PointAndFloat Inference::GetKeyPointsinBox(Key_PointAndFloat &Key)
