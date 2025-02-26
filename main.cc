@@ -13,7 +13,6 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 #include <future>
 #include <omp.h>
 
-
 int main(int argc, char **argv)
 {
 	int iCameraCounts = 1;
@@ -49,8 +48,6 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	
-
 	// 获得相机的特性描述结构体。该结构体中包含了相机可设置的各种参数的范围信息。决定了相关函数的参数
 	CameraGetCapability(hCamera, &tCapability);
 
@@ -69,7 +66,7 @@ int main(int argc, char **argv)
 		 CameraSetGamma、CameraSetConrast、CameraSetGain等设置图像伽马、对比度、RGB数字增益等等。
 		 本例程只是为了演示如何将SDK中获取的图像，转成OpenCV的图像格式,以便调用OpenCV的图像处理函数进行后续开发
 	*/
-		CameraSetAeState(hCamera, false);
+	CameraSetAeState(hCamera, false);
 	CameraSetExposureTime(hCamera, 10);
 
 	if (tCapability.sIspCapacity.bMonoSensor)
@@ -83,20 +80,20 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 
-	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/best_openvino_model/best.xml";
+	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov11_pose/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
 
 	// Initialize the YOLO inference with the specified model and parameters
 	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-		yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
 	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
 	double result = 0;
 	std::vector<cv::Mat> images;
-
+	int flage = 0;
 	while (1)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
@@ -116,19 +113,15 @@ int main(int argc, char **argv)
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
 			}
-		images.push_back(image);
-		CameraReleaseImageBuffer(hCamera, pbyBuffer);
+			images.push_back(image);
+			CameraReleaseImageBuffer(hCamera, pbyBuffer);
 		}
 
-		if(images.size()>2)
+		if (images.size() > 2)
 		{
-
-        inference.Pose_RunInference(images[0]);		
-      //  Ainference.Pose_RunInference(images[1]);
-
+				inference.Pose_RunInference(images[0]);
+				flage=1;
 		}
-
-
 
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> diff = end - start;
@@ -137,14 +130,15 @@ int main(int argc, char **argv)
 		if (time > 1000)
 		{
 			auto result = (simage / time) * 1000;
-			std::cout << "\n" << std::endl;
+			std::cout << "\n"
+					  << std::endl;
 			std::cout << result << "帧" << std::endl;
-			std::cout << ((inference.huamianshu+Ainference.huamianshu)/ time )* 1000 << "处理帧" << std::endl;
+			std::cout << ((inference.huamianshu + Ainference.huamianshu) / time) * 1000 << "处理帧" << std::endl;
 
 			time = 0;
 			simage = 0;
-			inference.huamianshu =0;
-			Ainference.huamianshu=0;
+			inference.huamianshu = 0;
+			Ainference.huamianshu = 0;
 		}
 	}
 

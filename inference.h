@@ -25,7 +25,7 @@ struct Detection {
 
 class Inference {
  public:
- int num_requests=20;
+ int num_requests=2;
  std::vector<bool>flages;
  int run_id=0;
  int huamianshu;

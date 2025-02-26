@@ -93,16 +93,23 @@ namespace yolo
 
 			run_id=(id+1)%num_requests;
 
-			
-			std::thread([frame,this,id]() {
+			  auto frame_ptr = std::make_shared<cv::Mat>(frame);
+			std::thread([frame_ptr,this,id,s]() {
 				this->inference_requests_[id].infer();
-				Pose_PostProcessing(frame,id);
-				huamianshu++;
-			 }).detach();
+			
+				Pose_PostProcessing(*frame_ptr,id);
 
-			auto e = std::chrono::high_resolution_clock::now();
+				huamianshu++;
+
+							auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
 			std::cout<<" time"<<diff.count()<<" ";
+
+			 }).detach();
+
+/* 			auto e = std::chrono::high_resolution_clock::now();
+			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
+			std::cout<<" time"<<diff.count()<<" "; */
 
 			return;
 		}
