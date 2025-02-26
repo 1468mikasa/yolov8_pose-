@@ -129,29 +129,53 @@ detect/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/build
 .PHONY : detect/fast
 
-yibu.o: yibu.cc.o
-.PHONY : yibu.o
+inference.o: inference.cc.o
+.PHONY : inference.o
 
 # target to build an object file
-yibu.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/yibu.cc.o
-.PHONY : yibu.cc.o
+inference.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/inference.cc.o
+.PHONY : inference.cc.o
 
-yibu.i: yibu.cc.i
-.PHONY : yibu.i
+inference.i: inference.cc.i
+.PHONY : inference.i
 
 # target to preprocess a source file
-yibu.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/yibu.cc.i
-.PHONY : yibu.cc.i
+inference.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/inference.cc.i
+.PHONY : inference.cc.i
 
-yibu.s: yibu.cc.s
-.PHONY : yibu.s
+inference.s: inference.cc.s
+.PHONY : inference.s
 
 # target to generate assembly for a file
-yibu.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/yibu.cc.s
-.PHONY : yibu.cc.s
+inference.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/inference.cc.s
+.PHONY : inference.cc.s
+
+main.o: main.cc.o
+.PHONY : main.o
+
+# target to build an object file
+main.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.o
+.PHONY : main.cc.o
+
+main.i: main.cc.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.i
+.PHONY : main.cc.i
+
+main.s: main.cc.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.s
+.PHONY : main.cc.s
 
 # Help Target
 help:
@@ -162,9 +186,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... detect"
-	@echo "... yibu.o"
-	@echo "... yibu.i"
-	@echo "... yibu.s"
+	@echo "... inference.o"
+	@echo "... inference.i"
+	@echo "... inference.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

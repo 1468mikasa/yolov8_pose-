@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 
-	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
+	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/best_openvino_model/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
@@ -120,18 +120,9 @@ int main(int argc, char **argv)
 
 		if(images.size()>2)
 		{
-		auto frame_ptr = std::make_shared<cv::Mat>(images[0]);
-		auto frame_ptr_ = std::make_shared<cv::Mat>(images[1]);
-		
-			std::async(std::launch::async, [frame_ptr,&inference]() {
-        inference.Pose_RunInference(*frame_ptr);
-		//inference.Pose_RunInference.frame_ptr_.push_back(frame_ptr_);
-		});
-		
-					std::async(std::launch::async, [frame_ptr_,&Ainference]() {
-        Ainference.Pose_RunInference(*frame_ptr_);
-		//inference.Pose_RunInference.frame_ptr_.push_back(frame_ptr_);
-		});
+
+        inference.Pose_RunInference(images[0]);		
+        Ainference.Pose_RunInference(images[1]);
 
 		}
 

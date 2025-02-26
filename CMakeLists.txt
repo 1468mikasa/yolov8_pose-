@@ -12,11 +12,12 @@ include_directories(
     ${SDK_ROOT}/include
 )
 
-add_executable(detect 
-   # main.cc
-    #inference.cc
+add_executable(
+detect 
+main.cc
+inference.cc
 
-yibu.cc
+#yibu.cc
 )
 
 target_link_libraries(detect
