@@ -47,7 +47,7 @@ namespace yolo
 
 		// Compile the model for inference
 		//compiled_model_ = core.compile_model(model, "AUTO");
-		compiled_model_ = core.compile_model(model, "GPU",ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT));
+		compiled_model_ = core.compile_model(model, "GPU",ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
 
 		inference_request_ = compiled_model_.create_infer_request(); // 
 
