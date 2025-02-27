@@ -430,7 +430,7 @@ CMakeFiles/detect.dir/inference.cc.o: ../inference.cc \
   /usr/include/c++/11/bits/std_thread.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
 
-CMakeFiles/detect.dir/main.cc.o: ../main.cc \
+CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
   /usr/include/stdc-predef.h \
   ../inference.h \
   /usr/include/c++/11/string \
@@ -917,8 +917,6 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/c++/11/bits/locale_conv.h:
 
 /usr/include/c++/11/bits/locale_facets_nonio.tcc:
-
-../main.cc:
 
 /usr/include/libintl.h:
 
@@ -1609,6 +1607,8 @@ CMakeFiles/detect.dir/main.cc.o: ../main.cc \
 /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
 
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
+
+../xunhuan.cc:
 
 /usr/include/c++/11/bits/ios_base.h:
 

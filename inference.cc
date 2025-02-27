@@ -80,6 +80,21 @@ namespace yolo
 
 	}
 
+	void Inference::XunHuan()
+	{
+		frame_ptr_[0]=cv::imread("");
+		if(!frame_ptr_[0].empty())
+		{
+			
+			std::cout<<"yibu";
+ 			Preprocessing(frame_ptr_[0],0);
+ 			inference_requests_[0].infer();
+			Pose_PostProcessing(frame_ptr_[0],0);
+			  
+
+		}
+	}
+
 	void Inference::Pose_RunInference(cv::Mat &frame)
 	{
 				// Preprocess the input frame
@@ -132,7 +147,7 @@ namespace yolo
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
 		inference_requests_[id].set_input_tensor(input_tensor);		 // Set input tensor for inference
-		yuchuli=true;																		
+																	
 	}
 
 	// Method to postprocess the inference results

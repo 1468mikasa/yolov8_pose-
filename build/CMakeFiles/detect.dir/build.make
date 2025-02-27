@@ -69,24 +69,10 @@ include CMakeFiles/detect.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/detect.dir/flags.make
 
-CMakeFiles/detect.dir/main.cc.o: CMakeFiles/detect.dir/flags.make
-CMakeFiles/detect.dir/main.cc.o: ../main.cc
-CMakeFiles/detect.dir/main.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/main.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/main.cc.o -MF CMakeFiles/detect.dir/main.cc.o.d -o CMakeFiles/detect.dir/main.cc.o -c /home/wei/桌面/yolov8_pose-/main.cc
-
-CMakeFiles/detect.dir/main.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/main.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wei/桌面/yolov8_pose-/main.cc > CMakeFiles/detect.dir/main.cc.i
-
-CMakeFiles/detect.dir/main.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/main.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wei/桌面/yolov8_pose-/main.cc -o CMakeFiles/detect.dir/main.cc.s
-
 CMakeFiles/detect.dir/inference.cc.o: CMakeFiles/detect.dir/flags.make
 CMakeFiles/detect.dir/inference.cc.o: ../inference.cc
 CMakeFiles/detect.dir/inference.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/detect.dir/inference.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/inference.cc.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/inference.cc.o -MF CMakeFiles/detect.dir/inference.cc.o.d -o CMakeFiles/detect.dir/inference.cc.o -c /home/wei/桌面/yolov8_pose-/inference.cc
 
 CMakeFiles/detect.dir/inference.cc.i: cmake_force
@@ -97,16 +83,30 @@ CMakeFiles/detect.dir/inference.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/inference.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wei/桌面/yolov8_pose-/inference.cc -o CMakeFiles/detect.dir/inference.cc.s
 
+CMakeFiles/detect.dir/xunhuan.cc.o: CMakeFiles/detect.dir/flags.make
+CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc
+CMakeFiles/detect.dir/xunhuan.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/detect.dir/xunhuan.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/xunhuan.cc.o -MF CMakeFiles/detect.dir/xunhuan.cc.o.d -o CMakeFiles/detect.dir/xunhuan.cc.o -c /home/wei/桌面/yolov8_pose-/xunhuan.cc
+
+CMakeFiles/detect.dir/xunhuan.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/xunhuan.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wei/桌面/yolov8_pose-/xunhuan.cc > CMakeFiles/detect.dir/xunhuan.cc.i
+
+CMakeFiles/detect.dir/xunhuan.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/xunhuan.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wei/桌面/yolov8_pose-/xunhuan.cc -o CMakeFiles/detect.dir/xunhuan.cc.s
+
 # Object files for target detect
 detect_OBJECTS = \
-"CMakeFiles/detect.dir/main.cc.o" \
-"CMakeFiles/detect.dir/inference.cc.o"
+"CMakeFiles/detect.dir/inference.cc.o" \
+"CMakeFiles/detect.dir/xunhuan.cc.o"
 
 # External object files for target detect
 detect_EXTERNAL_OBJECTS =
 
-detect: CMakeFiles/detect.dir/main.cc.o
 detect: CMakeFiles/detect.dir/inference.cc.o
+detect: CMakeFiles/detect.dir/xunhuan.cc.o
 detect: CMakeFiles/detect.dir/build.make
 detect: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.5.4d

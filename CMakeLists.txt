@@ -18,8 +18,9 @@ include_directories(
 
 add_executable(
 detect 
-main.cc
+#main.cc
 inference.cc
+xunhuan.cc
 
 #yibu.cc
 )

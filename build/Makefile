@@ -153,29 +153,29 @@ inference.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/inference.cc.s
 .PHONY : inference.cc.s
 
-main.o: main.cc.o
-.PHONY : main.o
+xunhuan.o: xunhuan.cc.o
+.PHONY : xunhuan.o
 
 # target to build an object file
-main.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.o
-.PHONY : main.cc.o
+xunhuan.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/xunhuan.cc.o
+.PHONY : xunhuan.cc.o
 
-main.i: main.cc.i
-.PHONY : main.i
+xunhuan.i: xunhuan.cc.i
+.PHONY : xunhuan.i
 
 # target to preprocess a source file
-main.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.i
-.PHONY : main.cc.i
+xunhuan.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/xunhuan.cc.i
+.PHONY : xunhuan.cc.i
 
-main.s: main.cc.s
-.PHONY : main.s
+xunhuan.s: xunhuan.cc.s
+.PHONY : xunhuan.s
 
 # target to generate assembly for a file
-main.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/main.cc.s
-.PHONY : main.cc.s
+xunhuan.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/detect.dir/build.make CMakeFiles/detect.dir/xunhuan.cc.s
+.PHONY : xunhuan.cc.s
 
 # Help Target
 help:
@@ -189,9 +189,9 @@ help:
 	@echo "... inference.o"
 	@echo "... inference.i"
 	@echo "... inference.s"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... xunhuan.o"
+	@echo "... xunhuan.i"
+	@echo "... xunhuan.s"
 .PHONY : help
 
 
