@@ -75,6 +75,7 @@ namespace yolo
 		{
 			inference_requests_.push_back(compiled_model_.create_infer_request());
 			flages.push_back(true);
+			frame_ptr_.push_back(cv::Mat());
 		}
 
 	}
@@ -97,17 +98,22 @@ namespace yolo
 				Preprocessing(*frame_ptr,id);
 
 				this->inference_requests_[id].infer();
+				flages[id]=true;
 				Pose_PostProcessing(*frame_ptr,id);
 
 				huamianshu++;
 
-							auto e = std::chrono::high_resolution_clock::now();
+			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
 			std::cout<<" time"<<diff.count()<<" ";
 
-			 }).detach();
+			}).detach();
 
 			return;
+		}
+		else
+		{
+			frame_ptr_[0]=frame.clone();
 		}
 
 
@@ -159,7 +165,7 @@ namespace yolo
 
 				class_list.push_back(class_id.y);
 				confidence_list.push_back(score);
-				std::cout << score << "###" << std::endl;
+				//std::cout << score << "###" << std::endl;
 
 				const float x = detection_outputs.at<float>(0, i);
 				const float y = detection_outputs.at<float>(1, i);
@@ -204,7 +210,7 @@ namespace yolo
 		// Get the output tensor from the inference request
 		const float *detections = inference_requests_[id].get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
-		flages[id]=true;
+		//flages[id]=true;
 
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
