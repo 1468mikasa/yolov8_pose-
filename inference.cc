@@ -82,17 +82,10 @@ namespace yolo
 
 	void Inference::XunHuan()
 	{
-		frame_ptr_[0]=cv::imread("");
-		if(!frame_ptr_[0].empty())
-		{
-			
-			std::cout<<"yibu";
- 			Preprocessing(frame_ptr_[0],0);
- 			inference_requests_[0].infer();
-			Pose_PostProcessing(frame_ptr_[0],0);
-			  
+		cv::Mat images=cv::imread("/home/wei/桌面/yolov8_pose-/2.jpg");
+Pose_RunInference(images);
 
-		}
+		
 	}
 
 	void Inference::Pose_RunInference(cv::Mat &frame)
