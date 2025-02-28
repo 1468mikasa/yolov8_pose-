@@ -133,8 +133,12 @@ Pose_RunInference(images);
 
 			auto frame_ptr = std::make_shared<cv::Mat>(frame);
 			std::thread([frame_ptr,this,id,s]() {
-				Preprocessing(*frame_ptr,id);
 
+		auto start = std::chrono::high_resolution_clock::now();
+				Preprocessing(*frame_ptr,id);
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> Ydiff = end - start;
+		std::cout<<" Yutime"<<Ydiff.count()<<" ";
 				this->inference_requests_[id].infer();
 				
 				Pose_PostProcessing(*frame_ptr,id);
@@ -142,10 +146,8 @@ Pose_RunInference(images);
 
 			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
-			std::cout<<" time"<<diff.count()<<" ";
+			std::cout<<" Intime"<<diff.count()<<" ";
 			
-			
-			/* Pose_RunInference(MAT,2); */
 			}).detach();
 
 			return;

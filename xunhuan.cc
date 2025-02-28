@@ -15,21 +15,23 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 
 int main(int argc, char **argv)
 {
-	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov8-f_best/best.xml";
+	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model_480/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
 
 	// Initialize the YOLO inference with the specified model and parameters
-	yolo::Inference inference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
-	yolo::Inference Ainference(model_path, cv::Size(640, 640), confidence_threshold, NMS_threshold);
+	yolo::Inference inference(model_path, cv::Size(480, 480), confidence_threshold, NMS_threshold);
+
+/* 	const std::string Amodel_path = "/home/auto/Desktop/yolov8_pose-/model/yolov8-f_best/best.xml";
+	yolo::Inference Ainference(Amodel_path, cv::Size(640, 640), confidence_threshold, NMS_threshold); */
 	// 循环显示1000帧图像
 	double simage = 0;
 	double time = 0;
 	double result = 0;
 	cv::Mat images;
 	int flage = 0;
-	images=cv::imread("/home/wei/桌面/yolov8_pose-/2.jpg");
+	images=cv::imread("/home/auto/Desktop/yolov8_pose-/22openvino/2.jpg");
 
 	while (1)
 	{
@@ -37,12 +39,11 @@ int main(int argc, char **argv)
 		auto start = std::chrono::high_resolution_clock::now();
 		cv::waitKey(2);
 		auto frame_ptr = std::make_shared<cv::Mat>(images);
-		if(!images.empty())
-		{
+
 		std::thread([frame_ptr, &inference]() {
 			inference.Pose_RunInference(*frame_ptr);
 		}).detach();
-		}
+		
 
 
 	
@@ -56,12 +57,12 @@ int main(int argc, char **argv)
 			std::cout << "\n"
 					  << std::endl;
 			std::cout << result << "帧" << std::endl;
-			std::cout << ((inference.huamianshu + Ainference.huamianshu) / time) * 1000 << "处理帧" << std::endl;
+			std::cout << ((inference.huamianshu /* + Ainference.huamianshu */) / time) * 1000 << "处理帧" << std::endl;
 
 			time = 0;
 			simage = 0;
 			inference.huamianshu = 0;
-			Ainference.huamianshu = 0;
+			//Ainference.huamianshu = 0;
 		}
 		
 	}

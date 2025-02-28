@@ -348,8 +348,10 @@ CMakeFiles/detect.dir/inference.cc.o: ../inference.cc \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/element_type.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/bfloat16.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float16.hpp \
+  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float4_e2m1.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e4m3.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e5m2.hpp \
+  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e8m0.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/tensor.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/allocator.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/descriptor/output.hpp \
@@ -777,8 +779,10 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/element_type.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/bfloat16.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float16.hpp \
+  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float4_e2m1.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e4m3.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e5m2.hpp \
+  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e8m0.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/tensor.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/allocator.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/core/descriptor/output.hpp \
@@ -837,9 +841,9 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
   /usr/include/c++/11/bits/quoted_string.h \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_context.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_tensor.hpp \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraApi.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraDefine.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraStatus.h \
   /usr/include/opencv4/opencv2/imgproc/imgproc_c.h \
   /usr/include/opencv4/opencv2/imgproc/types_c.h \
   /usr/include/opencv4/opencv2/core/core_c.h \
@@ -862,7 +866,9 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/opencv4/opencv2/imgproc/types_c.h:
 
-/home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h:
+/home/auto/linuxSDK_V2.1.0.41/include/CameraDefine.h:
+
+/home/auto/linuxSDK_V2.1.0.41/include/CameraApi.h:
 
 /usr/include/c++/11/bits/random.h:
 
@@ -1020,6 +1026,8 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/c++/11/bits/stl_map.h:
 
+/opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e8m0.hpp:
+
 /usr/include/c++/11/map:
 
 /opt/intel/openvino_2024/runtime/include/openvino/core/any.hpp:
@@ -1088,8 +1096,6 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
-/home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h:
-
 /usr/include/c++/11/bit:
 
 /usr/include/assert.h:
@@ -1099,8 +1105,6 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 /usr/include/c++/11/ext/new_allocator.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h:
 
 /usr/include/c++/11/future:
 
@@ -1394,6 +1398,8 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
 
+/home/auto/linuxSDK_V2.1.0.41/include/CameraStatus.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
 
 /usr/include/c++/11/bits/concept_check.h:
@@ -1651,6 +1657,8 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 /usr/include/c++/11/bits/refwrap.h:
 
 /usr/include/c++/11/exception:
+
+/opt/intel/openvino_2024/runtime/include/openvino/core/type/float4_e2m1.hpp:
 
 /usr/include/c++/11/bits/nested_exception.h:
 
