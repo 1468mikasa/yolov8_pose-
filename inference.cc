@@ -83,22 +83,22 @@ namespace yolo
 	void Inference::Pose_RunInference(cv::Mat &frame)
 	{
 				// Preprocess the input frame
-
-		if (flages[run_id])
+		for(int i=0;i<flages.size();i++)
+		{
+		if (flages[i])
 		{
 			auto s = std::chrono::high_resolution_clock::now();
 
-			int id=run_id;
-			flages[run_id] = false;
+			int id=i;
+			flages[id] = false;
 			
-			run_id=(id+1)%num_requests;
 
 			auto frame_ptr = std::make_shared<cv::Mat>(frame);
 			std::thread([frame_ptr,this,id,s]() {
 				Preprocessing(*frame_ptr,id);
 
 				this->inference_requests_[id].infer();
-				flages[id]=true;
+				
 				Pose_PostProcessing(*frame_ptr,id);
 
 				huamianshu++;
@@ -107,14 +107,17 @@ namespace yolo
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
 			//std::cout<<" time"<<diff.count()<<" ";
 
+			Pose_RunInference(MAT);
 			}).detach();
 
 			return;
 		}
-		else
-		{
-			frame_ptr_[0]=frame.clone();
 		}
+
+
+		MAT=frame.clone();
+			
+		
 
 
 
@@ -124,7 +127,7 @@ namespace yolo
 		auto start = std::chrono::high_resolution_clock::now();
 		//std::cout<<" 预处理开始 ";
 		cv::Mat resized_frame;
-		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_CUBIC); // Resize the frame to match the model input shape
+		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_LINEAR); // Resize the frame to match the model input shape
 			//cv::INTER_LINEAR cv::INTER_AREA cv::INTER_CUBIC INTER_NEAREST
 		// Calculate scaling factor
 		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
@@ -217,7 +220,7 @@ namespace yolo
 		// Get the output tensor from the inference request
 		const float *detections = inference_requests_[id].get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
-		//flages[id]=true;
+		flages[id]=true;
 
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
@@ -279,7 +282,7 @@ namespace yolo
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
-			//Pose_DrawDetectedObject(frame, result);
+			Pose_DrawDetectedObject(frame, result);
 		}
 		//std::cout<<" 后处理结束 ";
 	}
@@ -357,6 +360,9 @@ namespace yolo
 		std::cout<<"1	"<<Key_points.key_point[1].x<<"<<x y>>"<<Key_points.key_point[1].y<<std::endl;
 		std::cout<<"2	"<<Key_points.key_point[2].x<<"<<x y>>"<<Key_points.key_point[2].y<<std::endl;
 		std::cout<<"3	"<<Key_points.key_point[3].x<<"<<x y>>"<<Key_points.key_point[3].y<<std::endl;
+
+		cv::imshow("img",frame);
+		cv::waitKey(1);
 	}
 
 	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const

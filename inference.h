@@ -31,6 +31,7 @@ class Inference {
  int huamianshu;
  std::vector<cv::Mat> frame_ptr_;
  cv::Mat mat_3;
+ cv::Mat MAT;
  bool yuchuli=false;
 
 	Inference() {}
