@@ -29,19 +29,23 @@ int main(int argc, char **argv)
 	double result = 0;
 	cv::Mat images;
 	int flage = 0;
+	images=cv::imread("/home/wei/桌面/yolov8_pose-/2.jpg");
+
 	while (1)
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-
-		images=cv::imread("/home/wei/桌面/yolov8_pose-/2.jpg");
-		auto frame_ptr = std::make_shared<cv::Mat>(images);
-
-		std::thread([frame_ptr,inference]() {
-				inference.Pose_RunInference(frame_ptr);
-			)}.detach();
-
 		
+		auto start = std::chrono::high_resolution_clock::now();
+		cv::waitKey(2);
+		auto frame_ptr = std::make_shared<cv::Mat>(images);
+		if(!images.empty())
+		{
+		std::thread([frame_ptr, &inference]() {
+			inference.Pose_RunInference(*frame_ptr);
+		}).detach();
+		}
 
+
+	
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> diff = end - start;
 		simage += 1;
@@ -59,6 +63,7 @@ int main(int argc, char **argv)
 			inference.huamianshu = 0;
 			Ainference.huamianshu = 0;
 		}
+		
 	}
 
 
