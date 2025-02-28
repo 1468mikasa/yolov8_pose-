@@ -25,11 +25,12 @@ struct Detection {
 
 class Inference {
  public:
- int num_requests=2;
+ int num_requests=3;
  std::vector<bool>flages;
  int run_id=0;
  int huamianshu;
  std::vector<cv::Mat> frame_ptr_;
+ cv::Mat MAT;
  cv::Mat mat_3;
  bool yuchuli=false;
 
@@ -43,6 +44,7 @@ class Inference {
 	void RunInference(cv::Mat &frame);
 	void Pose_RunInference(cv::Mat &frame);
 	void Pose_Run_async_Inference(cv::Mat &frame);
+	void Pose_RunInference(cv::Mat &frame,int id);
 	
  private:
 	void InitializeModel(const std::string &model_path);

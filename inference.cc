@@ -86,47 +86,75 @@ namespace yolo
 Pose_RunInference(images);
 
 		
+	} 
+
+	void Inference::Pose_RunInference(cv::Mat &frame,int id)
+	{
+				// Preprocess the input frame
+		for(int i=0;i<flages.size()-1;i++)
+		{
+		if (flages[id])
+		{
+			flages[id] = false;
+			auto s = std::chrono::high_resolution_clock::now();
+			auto frame_ptr = std::make_shared<cv::Mat>(frame);
+			std::thread([frame_ptr,this,id,s]() {
+				Preprocessing(*frame_ptr,id);
+
+				this->inference_requests_[id].infer();
+				//Pose_RunInference(MAT);
+				Pose_PostProcessing(*frame_ptr,id);
+				huamianshu++;
+
+			auto e = std::chrono::high_resolution_clock::now();
+			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
+			std::cout<<" time"<<diff.count()<<" ";
+			
+
+			}).detach();
+
+			return;
+		}
+		}
+		
 	}
 
 	void Inference::Pose_RunInference(cv::Mat &frame)
 	{
 				// Preprocess the input frame
-
-		if (flages[run_id])
+		for(int i=0;i<flages.size()-1;i++)
 		{
+		if (flages[i])
+		{
+			flages[i] = false;
 			auto s = std::chrono::high_resolution_clock::now();
-
-			int id=run_id;
-			flages[run_id] = false;
+			int id=i;
 			
-			run_id=(id+1)%num_requests;
 
 			auto frame_ptr = std::make_shared<cv::Mat>(frame);
 			std::thread([frame_ptr,this,id,s]() {
 				Preprocessing(*frame_ptr,id);
 
 				this->inference_requests_[id].infer();
-				flages[id]=true;
+				
 				Pose_PostProcessing(*frame_ptr,id);
-
 				huamianshu++;
 
 			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
 			std::cout<<" time"<<diff.count()<<" ";
-
+			
+			
+			/* Pose_RunInference(MAT,2); */
 			}).detach();
 
 			return;
 		}
-		else
-		{
-			frame_ptr_[0]=frame.clone();
 		}
 
-
-
-}
+		MAT=frame.clone();
+		
+	}
 	void Inference::Preprocessing(const cv::Mat &frame,int id)
 	{
 		//std::cout<<" 预处理开始 ";
@@ -218,7 +246,7 @@ Pose_RunInference(images);
 		// Get the output tensor from the inference request
 		const float *detections = inference_requests_[id].get_output_tensor().data<const float>();
 		const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
-		//flages[id]=true;
+		flages[id]=true;//good
 
 
 		// std::cout << "The full i-th column matrix at column " << i << ":\n" << classes_scores << std::endl;
