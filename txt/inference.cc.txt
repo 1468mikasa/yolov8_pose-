@@ -169,8 +169,8 @@ Pose_RunInference(images);
 		//std::cout<<" 预处理开始 ";
 		cv::Mat resized_frame;	
 		resized_frame.create(model_input_shape_, frame.type());//good
-		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_LINEAR); // Resize the frame to match the model input shape
-		//cv::INTER_LINEAR cv::INTER_AREA cv::INTER_CUBIC INTER_NEAREST
+		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+		//cv::INTER_LINEAR cv::INTER_AREA
 
 	
 		// Calculate scaling factor
@@ -184,7 +184,7 @@ Pose_RunInference(images);
 
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> Ydiff = end - start;
-		std::cout<<" Yutime"<<Ydiff.count()<<" ";
+		//std::cout<<" Yutime"<<Ydiff.count()<<" ";
 	}
 
 	// Method to postprocess the inference results
