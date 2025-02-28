@@ -121,6 +121,7 @@ Pose_RunInference(images);
 
 	void Inference::Pose_RunInference(cv::Mat &frame)
 	{
+
 				// Preprocess the input frame
 		for(int i=0;i<flages.size()-1;i++)
 		{
@@ -139,6 +140,7 @@ Pose_RunInference(images);
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> Ydiff = end - start;
 		std::cout<<" Yutime"<<Ydiff.count()<<" ";
+
 				this->inference_requests_[id].infer();
 				
 				Pose_PostProcessing(*frame_ptr,id);
@@ -146,7 +148,7 @@ Pose_RunInference(images);
 
 			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
-			std::cout<<" Intime"<<diff.count()<<" ";
+		//	std::cout<<" Intime"<<diff.count()<<" ";
 			
 			}).detach();
 
@@ -158,19 +160,26 @@ Pose_RunInference(images);
 		
 	}
 	void Inference::Preprocessing(const cv::Mat &frame,int id)
-	{
+	{	auto start = std::chrono::high_resolution_clock::now();
 		//std::cout<<" 预处理开始 ";
-		cv::Mat resized_frame;
+		cv::Mat resized_frame;	
+		resized_frame.create(model_input_shape_, frame.type());//good
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+		//cv::INTER_LINEAR cv::INTER_AREA
 
+	
 		// Calculate scaling factor
 		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
 
+
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
 		inference_requests_[id].set_input_tensor(input_tensor);		 // Set input tensor for inference
-																	
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> Ydiff = end - start;
+		std::cout<<" Yutime"<<Ydiff.count()<<" ";
 	}
 
 	// Method to postprocess the inference results
