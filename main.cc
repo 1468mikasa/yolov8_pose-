@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	*/
 
 	CameraSetAeState(hCamera, false);
-	CameraSetExposureTime(hCamera, 2000);
+	CameraSetExposureTime(hCamera, 7000);
 
 	/// CameraSetGain(hCamera, 255,255,255);  // 设置增益，增加亮度
 	// CameraSetConrast(hCamera, 155); // 对比度已设置，你可以根据需要调节
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 	// const std::string model_path_ = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model/best.xml";
-	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov8-f-512/weights/best/best.xml";
+	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov8-f_best/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.2;
 	const float NMS_threshold = 0.5;
@@ -277,7 +277,7 @@ if(matDeque.size()>2)
 			continue;
 		}
  */
-
+//cv::imwrite("test.jpg",matDeque[0]);
 
 		simage += 1;
 		CameraReleaseImageBuffer(hCamera, pbyBuffer);
