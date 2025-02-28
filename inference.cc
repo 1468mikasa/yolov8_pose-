@@ -361,8 +361,8 @@ namespace yolo
 		std::cout<<"2	"<<Key_points.key_point[2].x<<"<<x y>>"<<Key_points.key_point[2].y<<std::endl;
 		std::cout<<"3	"<<Key_points.key_point[3].x<<"<<x y>>"<<Key_points.key_point[3].y<<std::endl;
 
-		cv::imshow("img",frame);
-		cv::waitKey(1);
+/* 		cv::imshow("img",frame);
+		cv::waitKey(1); */
 	}
 
 	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const

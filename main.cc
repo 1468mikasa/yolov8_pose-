@@ -112,21 +112,24 @@ int main(int argc, char **argv)
 			{
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
-			}
-			images=image.clone();
-			
-			cv::imshow("Aimg",image);
-			cv::waitKey(1);
-
+			}		
+			images=image.clone();	
 			CameraReleaseImageBuffer(hCamera, pbyBuffer);
+
 		}
+
+/* 		if (!images.empty() && images.cols > 0 && images.rows > 0) {
+			inference.Pose_RunInference(images);
+			flage = 1;
+		} else {
+			std::cerr << "Invalid image size for inference." << std::endl;
+		}
+ */
 
 		if (!images.empty())
 		{
 				inference.Pose_RunInference(images);
 				flage=1;
-
-
 		}
 
 		auto end = std::chrono::high_resolution_clock::now();
