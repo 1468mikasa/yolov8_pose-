@@ -308,7 +308,7 @@ void Inference::stop(int &i, ov::InferRequest &inference_request_)
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
 
-			//Pose_DrawDetectedObject(frame, result);
+			Pose_DrawDetectedObject(frame, result);
 
 
 		} 
