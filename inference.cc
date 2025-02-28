@@ -124,8 +124,8 @@ namespace yolo
 		auto start = std::chrono::high_resolution_clock::now();
 		//std::cout<<" 预处理开始 ";
 		cv::Mat resized_frame;
-		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
-
+		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_CUBIC); // Resize the frame to match the model input shape
+			//cv::INTER_LINEAR cv::INTER_AREA cv::INTER_CUBIC INTER_NEAREST
 		// Calculate scaling factor
 		scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 		scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
