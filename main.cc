@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	double simage = 0;
 	double time = 0;
 	double result = 0;
-	std::vector<cv::Mat> images;
+	cv::Mat images;
 	int flage = 0;
 	while (1)
 	{
@@ -113,13 +113,13 @@ int main(int argc, char **argv)
 				std::cerr << "ERROR: image is empty" << std::endl;
 				return 1;
 			}
-			images.push_back(image);
+			images=image.clone();
 			CameraReleaseImageBuffer(hCamera, pbyBuffer);
 		}
 
-		if (images.size() > 2)
+		if (!images.empty())
 		{
-				inference.Pose_RunInference(images[0]);
+				inference.Pose_RunInference(images);
 				flage=1;
 		}
 

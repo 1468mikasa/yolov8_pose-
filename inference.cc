@@ -105,7 +105,7 @@ namespace yolo
 
 			auto e = std::chrono::high_resolution_clock::now();
 			auto diff= std::chrono::duration_cast<std::chrono::milliseconds>(e - s);
-			std::cout<<" time"<<diff.count()<<" ";
+			//std::cout<<" time"<<diff.count()<<" ";
 
 			}).detach();
 
@@ -121,6 +121,7 @@ namespace yolo
 }
 	void Inference::Preprocessing(const cv::Mat &frame,int id)
 	{
+		auto start = std::chrono::high_resolution_clock::now();
 		//std::cout<<" 预处理开始 ";
 		cv::Mat resized_frame;
 		cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
@@ -132,7 +133,13 @@ namespace yolo
 		float *input_data = (float *)resized_frame.data;																						 // Get pointer to resized frame data
 		const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
 		inference_requests_[id].set_input_tensor(input_tensor);		 // Set input tensor for inference
-		yuchuli=true;																		
+		yuchuli=true;		
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> diff = end - start;
+	
+		std::cout<<" Ytime"<<diff.count();
+
 	}
 
 	// Method to postprocess the inference results
