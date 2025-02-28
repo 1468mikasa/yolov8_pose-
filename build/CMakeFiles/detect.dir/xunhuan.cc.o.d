@@ -1,6 +1,6 @@
 CMakeFiles/detect.dir/xunhuan.cc.o: \
- /home/auto/Desktop/yolov8_pose-/xunhuan.cc /usr/include/stdc-predef.h \
- /home/auto/Desktop/yolov8_pose-/inference.h /usr/include/c++/11/string \
+ /home/wei/桌面/yolov8_pose-/xunhuan.cc /usr/include/stdc-predef.h \
+ /home/wei/桌面/yolov8_pose-/inference.h /usr/include/c++/11/string \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -289,10 +289,8 @@ CMakeFiles/detect.dir/xunhuan.cc.o: \
  /opt/intel/openvino_2024/runtime/include/openvino/core/type/element_type.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/core/type/bfloat16.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float16.hpp \
- /opt/intel/openvino_2024/runtime/include/openvino/core/type/float4_e2m1.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e4m3.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e5m2.hpp \
- /opt/intel/openvino_2024/runtime/include/openvino/core/type/float8_e8m0.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/runtime/tensor.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/runtime/allocator.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/core/descriptor/output.hpp \
@@ -349,9 +347,9 @@ CMakeFiles/detect.dir/xunhuan.cc.o: \
  /usr/include/c++/11/iomanip /usr/include/c++/11/bits/quoted_string.h \
  /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_context.hpp \
  /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_tensor.hpp \
- /home/auto/linuxSDK_V2.1.0.41/include/CameraApi.h \
- /home/auto/linuxSDK_V2.1.0.41/include/CameraDefine.h \
- /home/auto/linuxSDK_V2.1.0.41/include/CameraStatus.h \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h \
+ /home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h \
  /usr/include/opencv4/opencv2/imgproc/imgproc_c.h \
  /usr/include/opencv4/opencv2/imgproc/types_c.h \
  /usr/include/opencv4/opencv2/core/core_c.h \

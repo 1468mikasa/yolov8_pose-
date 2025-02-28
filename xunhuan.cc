@@ -15,7 +15,7 @@ unsigned char *g_pRgbBuffer; // 处理后数据缓存区
 
 int main(int argc, char **argv)
 {
-	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/best_openvino_model_480/best.xml";
+	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov8-f_best/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	{
 		
 		auto start = std::chrono::high_resolution_clock::now();
-		cv::waitKey(2);
+		cv::waitKey(5);
 		auto frame_ptr = std::make_shared<cv::Mat>(images);
 
 		std::thread([frame_ptr, &inference]() {

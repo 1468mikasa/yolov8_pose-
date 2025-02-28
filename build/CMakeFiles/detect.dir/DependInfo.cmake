@@ -8,8 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/auto/Desktop/yolov8_pose-/inference.cc" "CMakeFiles/detect.dir/inference.cc.o" "gcc" "CMakeFiles/detect.dir/inference.cc.o.d"
-  "/home/auto/Desktop/yolov8_pose-/xunhuan.cc" "CMakeFiles/detect.dir/xunhuan.cc.o" "gcc" "CMakeFiles/detect.dir/xunhuan.cc.o.d"
+  "/home/wei/桌面/yolov8_pose-/inference.cc" "CMakeFiles/detect.dir/inference.cc.o" "gcc" "CMakeFiles/detect.dir/inference.cc.o.d"
+  "/home/wei/桌面/yolov8_pose-/xunhuan.cc" "CMakeFiles/detect.dir/xunhuan.cc.o" "gcc" "CMakeFiles/detect.dir/xunhuan.cc.o.d"
   )
 
 # Targets to which this target links.
