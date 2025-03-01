@@ -3,7 +3,7 @@ project(yolov8_openvino_example)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
-set(SDK_ROOT "/home/wei/linuxSDK_V2.1.0.41")
+set(SDK_ROOT "/home/auto/linuxSDK_V2.1.0.41")
 
 # 假设当前目录为项目根目录，使用相对路径查找 OpenCV
 find_package(OpenCV REQUIRED)

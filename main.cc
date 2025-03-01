@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 		CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
 	}
 
-	const std::string model_path = "/home/wei/桌面/yolov8_pose-/model/yolov8-f-512/weights/best/best.xml";
+	const std::string model_path = "/home/auto/Desktop/yolov8_pose-/model/yolov8-f-512/weights/best/best.xml";
 	// Define the confidence and NMS thresholds
 	const float confidence_threshold = 0.4;
 	const float NMS_threshold = 0.5;
