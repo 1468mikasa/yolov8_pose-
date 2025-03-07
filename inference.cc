@@ -325,7 +325,7 @@ Pose_RunInference(images);
 			result.confidence = confidence_list[id];
 			result.box = GetBoundingBox(box_list[id]);
 			result.Key_Point = GetKeyPointsinBox(key_list[id]);
-			//Pose_DrawDetectedObject(frame, result);
+			Pose_DrawDetectedObject(frame, result);
 		}
 		//std::cout<<" 后处理结束 ";
 	}
@@ -403,6 +403,8 @@ Pose_RunInference(images);
 		std::cout<<"1	"<<Key_points.key_point[1].x<<"<<x y>>"<<Key_points.key_point[1].y<<std::endl;
 		std::cout<<"2	"<<Key_points.key_point[2].x<<"<<x y>>"<<Key_points.key_point[2].y<<std::endl;
 		std::cout<<"3	"<<Key_points.key_point[3].x<<"<<x y>>"<<Key_points.key_point[3].y<<std::endl;
+		cv::imshow("1",frame);
+		cv::waitKey(1);
 	}
 
 	void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const

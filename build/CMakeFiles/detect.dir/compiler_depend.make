@@ -837,9 +837,9 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
   /usr/include/c++/11/bits/quoted_string.h \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_context.hpp \
   /opt/intel/openvino_2024/runtime/include/openvino/runtime/remote_tensor.hpp \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h \
-  /home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraApi.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraDefine.h \
+  /home/auto/linuxSDK_V2.1.0.41/include/CameraStatus.h \
   /usr/include/opencv4/opencv2/imgproc/imgproc_c.h \
   /usr/include/opencv4/opencv2/imgproc/types_c.h \
   /usr/include/opencv4/opencv2/core/core_c.h \
@@ -862,7 +862,9 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/opencv4/opencv2/imgproc/types_c.h:
 
-/home/wei/linuxSDK_V2.1.0.41/include/CameraStatus.h:
+/home/auto/linuxSDK_V2.1.0.41/include/CameraDefine.h:
+
+/home/auto/linuxSDK_V2.1.0.41/include/CameraApi.h:
 
 /usr/include/c++/11/bits/random.h:
 
@@ -1088,8 +1090,6 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
-/home/wei/linuxSDK_V2.1.0.41/include/CameraDefine.h:
-
 /usr/include/c++/11/bit:
 
 /usr/include/assert.h:
@@ -1099,8 +1099,6 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 /usr/include/c++/11/ext/new_allocator.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/home/wei/linuxSDK_V2.1.0.41/include/CameraApi.h:
 
 /usr/include/c++/11/future:
 
@@ -1393,6 +1391,8 @@ CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc \
 /usr/include/linux/limits.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+/home/auto/linuxSDK_V2.1.0.41/include/CameraStatus.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
 

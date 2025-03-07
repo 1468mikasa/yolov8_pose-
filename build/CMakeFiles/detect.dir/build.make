@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/wei/桌面/yolov8_pose-
+CMAKE_SOURCE_DIR = /home/auto/Desktop/yolov8_pose-
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/wei/桌面/yolov8_pose-/build
+CMAKE_BINARY_DIR = /home/auto/Desktop/yolov8_pose-/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/detect.dir/depend.make
@@ -72,30 +72,30 @@ include CMakeFiles/detect.dir/flags.make
 CMakeFiles/detect.dir/inference.cc.o: CMakeFiles/detect.dir/flags.make
 CMakeFiles/detect.dir/inference.cc.o: ../inference.cc
 CMakeFiles/detect.dir/inference.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/inference.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/inference.cc.o -MF CMakeFiles/detect.dir/inference.cc.o.d -o CMakeFiles/detect.dir/inference.cc.o -c /home/wei/桌面/yolov8_pose-/inference.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/auto/Desktop/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/detect.dir/inference.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/inference.cc.o -MF CMakeFiles/detect.dir/inference.cc.o.d -o CMakeFiles/detect.dir/inference.cc.o -c /home/auto/Desktop/yolov8_pose-/inference.cc
 
 CMakeFiles/detect.dir/inference.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/inference.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wei/桌面/yolov8_pose-/inference.cc > CMakeFiles/detect.dir/inference.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/auto/Desktop/yolov8_pose-/inference.cc > CMakeFiles/detect.dir/inference.cc.i
 
 CMakeFiles/detect.dir/inference.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/inference.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wei/桌面/yolov8_pose-/inference.cc -o CMakeFiles/detect.dir/inference.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/auto/Desktop/yolov8_pose-/inference.cc -o CMakeFiles/detect.dir/inference.cc.s
 
 CMakeFiles/detect.dir/xunhuan.cc.o: CMakeFiles/detect.dir/flags.make
 CMakeFiles/detect.dir/xunhuan.cc.o: ../xunhuan.cc
 CMakeFiles/detect.dir/xunhuan.cc.o: CMakeFiles/detect.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/detect.dir/xunhuan.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/xunhuan.cc.o -MF CMakeFiles/detect.dir/xunhuan.cc.o.d -o CMakeFiles/detect.dir/xunhuan.cc.o -c /home/wei/桌面/yolov8_pose-/xunhuan.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/auto/Desktop/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/detect.dir/xunhuan.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/detect.dir/xunhuan.cc.o -MF CMakeFiles/detect.dir/xunhuan.cc.o.d -o CMakeFiles/detect.dir/xunhuan.cc.o -c /home/auto/Desktop/yolov8_pose-/xunhuan.cc
 
 CMakeFiles/detect.dir/xunhuan.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/detect.dir/xunhuan.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/wei/桌面/yolov8_pose-/xunhuan.cc > CMakeFiles/detect.dir/xunhuan.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/auto/Desktop/yolov8_pose-/xunhuan.cc > CMakeFiles/detect.dir/xunhuan.cc.i
 
 CMakeFiles/detect.dir/xunhuan.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/detect.dir/xunhuan.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/wei/桌面/yolov8_pose-/xunhuan.cc -o CMakeFiles/detect.dir/xunhuan.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/auto/Desktop/yolov8_pose-/xunhuan.cc -o CMakeFiles/detect.dir/xunhuan.cc.s
 
 # Object files for target detect
 detect_OBJECTS = \
@@ -144,7 +144,7 @@ detect: /usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.5.4d
 detect: /opt/intel/openvino_2024/runtime/lib/intel64/libopenvino.so
-detect: /home/wei/linuxSDK_V2.1.0.41/lib/x64/libMVSDK.so
+detect: /home/auto/linuxSDK_V2.1.0.41/lib/x64/libMVSDK.so
 detect: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_datasets.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_plot.so.4.5.4d
@@ -165,7 +165,7 @@ detect: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.5.4d
 detect: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.5.4d
 detect: CMakeFiles/detect.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wei/桌面/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable detect"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/auto/Desktop/yolov8_pose-/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable detect"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/detect.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -177,6 +177,6 @@ CMakeFiles/detect.dir/clean:
 .PHONY : CMakeFiles/detect.dir/clean
 
 CMakeFiles/detect.dir/depend:
-	cd /home/wei/桌面/yolov8_pose-/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/wei/桌面/yolov8_pose- /home/wei/桌面/yolov8_pose- /home/wei/桌面/yolov8_pose-/build /home/wei/桌面/yolov8_pose-/build /home/wei/桌面/yolov8_pose-/build/CMakeFiles/detect.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/auto/Desktop/yolov8_pose-/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/auto/Desktop/yolov8_pose- /home/auto/Desktop/yolov8_pose- /home/auto/Desktop/yolov8_pose-/build /home/auto/Desktop/yolov8_pose-/build /home/auto/Desktop/yolov8_pose-/build/CMakeFiles/detect.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/detect.dir/depend
 
